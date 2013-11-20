@@ -1,7 +1,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 project(gas)
 
-set(GLHCK_BUILD_EXAMPLES OFF)
+set(GLHCK_BUILD_EXAMPLES OFF CACHE BOOL "Skip GLHCK examples")
 add_subdirectory(lib)
 
 include_directories(
