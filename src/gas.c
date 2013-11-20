@@ -5,37 +5,37 @@
 #include <stdlib.h>
 #include <memory.h>
 
-gasAnimation* gasNumberAnimationFromToNew(gasNumberAnimationTarget const target, gasEasingType const easing,
+gasAnimation* gasNumberAnimationNewFromTo(gasNumberAnimationTarget const target, gasEasingType const easing,
                                           float const from, float const to, float const duration)
 {
   return _gasNumberAnimationNew(target, easing, GAS_NUMBER_ANIMATION_TYPE_FROM_TO, from, to, duration);
 }
 
-gasAnimation* gasNumberAnimationFromDeltaNew(gasNumberAnimationTarget const target, gasEasingType const easing,
+gasAnimation* gasNumberAnimationNewFromDelta(gasNumberAnimationTarget const target, gasEasingType const easing,
                                              float const from, float const delta, float const duration)
 {
   return _gasNumberAnimationNew(target, easing, GAS_NUMBER_ANIMATION_TYPE_FROM_DELTA, from, delta, duration);
 }
 
-gasAnimation* gasNumberAnimationDeltaToNew(gasNumberAnimationTarget const target, gasEasingType const easing,
+gasAnimation* gasNumberAnimationNewDeltaTo(gasNumberAnimationTarget const target, gasEasingType const easing,
                                            float const delta, float const to, float const duration)
 {
   return _gasNumberAnimationNew(target, easing, GAS_NUMBER_ANIMATION_TYPE_DELTA_TO, delta, to, duration);
 }
 
-gasAnimation* gasNumberAnimationFromNew(gasNumberAnimationTarget const target, gasEasingType const easing,
+gasAnimation* gasNumberAnimationNewFrom(gasNumberAnimationTarget const target, gasEasingType const easing,
                                         float const from, float const duration)
 {
   return _gasNumberAnimationNew(target, easing, GAS_NUMBER_ANIMATION_TYPE_FROM, from, 0.0f, duration);
 }
 
-gasAnimation* gasNumberAnimationToNew(gasNumberAnimationTarget const target, gasEasingType const easing,
+gasAnimation* gasNumberAnimationNewTo(gasNumberAnimationTarget const target, gasEasingType const easing,
                                       float const to, float const duration)
 {
   return _gasNumberAnimationNew(target, easing, GAS_NUMBER_ANIMATION_TYPE_TO, 0.0f, to, duration);
 }
 
-gasAnimation* gasNumberAnimationDeltaNew(gasNumberAnimationTarget const target, gasEasingType const easing,
+gasAnimation* gasNumberAnimationNewDelta(gasNumberAnimationTarget const target, gasEasingType const easing,
                                          float const delta, float const duration)
 {
   return _gasNumberAnimationNew(target, easing, GAS_NUMBER_ANIMATION_TYPE_DELTA, 0.0f, delta, duration);
@@ -189,7 +189,21 @@ float _gasAnimateSequentialAnimation(gasAnimation* animation, glhckObject* objec
 
 float _gasAnimateParallelAnimation(gasAnimation* animation, glhckObject* object, float const delta)
 {
+  float minLeft = delta;
 
+  int i;
+  for (i = 0; i < animation->parallelAnimation.numChildren; ++i)
+  {
+    gasAnimation* child = animation->parallelAnimation.children[i];
+    float left = _gasAnimate(child, object, delta);
+    minLeft = left < minLeft ? left : minLeft;
+  }
+
+  animation->state = minLeft > 0
+      ? GAS_ANIMATION_STATE_FINISHED
+      : GAS_ANIMATION_STATE_RUNNING;
+
+  return minLeft;
 }
 
 float _gasNumberAnimationGetTargetValue(gasNumberAnimationTarget target, glhckObject* object)

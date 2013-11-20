@@ -32,17 +32,17 @@ typedef enum gasEasingType {
 
 typedef struct _gasAnimation gasAnimation;
 
-gasAnimation* gasNumberAnimationFromToNew(gasNumberAnimationTarget const target, gasEasingType const easing,
+gasAnimation* gasNumberAnimationNewFromTo(gasNumberAnimationTarget const target, gasEasingType const easing,
                                           float const from, float const to, float const duration);
-gasAnimation* gasNumberAnimationFromDeltaNew(gasNumberAnimationTarget const target, gasEasingType const easing,
+gasAnimation* gasNumberAnimationNewFromDelta(gasNumberAnimationTarget const target, gasEasingType const easing,
                                              float const from, float const delta, float const duration);
-gasAnimation* gasNumberAnimationDeltaToNew(gasNumberAnimationTarget const target, gasEasingType const easing,
+gasAnimation* gasNumberAnimationNewDeltaTo(gasNumberAnimationTarget const target, gasEasingType const easing,
                                            float const delta, float const to, float const duration);
-gasAnimation* gasNumberAnimationFromNew(gasNumberAnimationTarget const target, gasEasingType const easing,
+gasAnimation* gasNumberAnimationNewFrom(gasNumberAnimationTarget const target, gasEasingType const easing,
                                         float const from, float const duration);
-gasAnimation* gasNumberAnimationToNew(gasNumberAnimationTarget const target, gasEasingType const easing,
+gasAnimation* gasNumberAnimationNewTo(gasNumberAnimationTarget const target, gasEasingType const easing,
                                       float const to, float const duration);
-gasAnimation* gasNumberAnimationDeltaNew(gasNumberAnimationTarget const target, gasEasingType const easing,
+gasAnimation* gasNumberAnimationNewDelta(gasNumberAnimationTarget const target, gasEasingType const easing,
                                          float const delta, float const duration);
 
 gasAnimation* gasPauseAnimationNew(float const duration);
