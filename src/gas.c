@@ -3,6 +3,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <memory.h>
 
 gasAnimation* gasNumberAnimationFromToNew(gasNumberAnimationTarget const target, gasEasingType const easing,
                                           float const from, float const to, float const duration)
@@ -58,16 +59,15 @@ gasAnimation* _gasNumberAnimationNew(gasNumberAnimationTarget const target, gasE
 
 gasBoolean gasAnimate(gasAnimation* animation, glhckObject* object, float const delta)
 {
-  if (animation->state == GAS_ANIMATION_STATE_FINISHED)
-    return GAS_FALSE;
-
   _gasAnimate(animation, object, delta);
-
   return animation->state != GAS_ANIMATION_STATE_FINISHED ? GAS_TRUE : GAS_FALSE;
 }
 
 float _gasAnimate(gasAnimation* animation, glhckObject* object, float const delta)
 {
+  if (animation->state == GAS_ANIMATION_STATE_FINISHED)
+    return delta;
+
   switch (animation->type)
   {
     case GAS_ANIMATION_TYPE_NUMBER: return _gasAnimateNumberAnimation(animation, object, delta); break;
@@ -168,7 +168,23 @@ float _gasAnimatePauseAnimation(gasAnimation* animation, glhckObject* object, fl
 
 float _gasAnimateSequentialAnimation(gasAnimation* animation, glhckObject* object, float const delta)
 {
+  float left = delta;
+  while (left > 0 && animation->sequentialAnimation.currentIndex < animation->sequentialAnimation.numChildren)
+  {
+    gasAnimation* child = animation->sequentialAnimation.children[animation->sequentialAnimation.currentIndex];
+    left = _gasAnimate(child, object, left);
 
+    if(left > 0)
+    {
+      animation->sequentialAnimation.currentIndex += 1;
+    }
+  }
+
+  animation->state = animation->sequentialAnimation.currentIndex >= animation->sequentialAnimation.numChildren
+      ? GAS_ANIMATION_STATE_FINISHED
+      : GAS_ANIMATION_STATE_RUNNING;
+
+  return left;
 }
 
 float _gasAnimateParallelAnimation(gasAnimation* animation, glhckObject* object, float const delta)
@@ -240,8 +256,64 @@ void gasAnimationFree(gasAnimation* animation)
   {
     case GAS_ANIMATION_TYPE_NUMBER: free(animation); break;
     case GAS_ANIMATION_TYPE_PAUSE: free(animation); break;
-    case GAS_ANIMATION_TYPE_SEQUENTIAL: assert(0); break; // TODO
-    case GAS_ANIMATION_TYPE_PARALLEL: assert(0); break; // TODO
+    case GAS_ANIMATION_TYPE_SEQUENTIAL:
+    {
+      int i;
+      for(i = 0; i < animation->sequentialAnimation.numChildren; ++i)
+      {
+        gasAnimationFree(animation->sequentialAnimation.children[i]);
+      }
+      free(animation->sequentialAnimation.children);
+      free(animation);
+      break;
+    }
+    case GAS_ANIMATION_TYPE_PARALLEL:
+    {
+      int i;
+      for(i = 0; i < animation->parallelAnimation.numChildren; ++i)
+      {
+        gasAnimationFree(animation->parallelAnimation.children[i]);
+      }
+      free(animation->parallelAnimation.children);
+      free(animation);
+      break;
+    }
     default: assert(0);
   }
+}
+
+
+gasAnimation* gasSequentialAnimationNew(gasAnimation** children, const unsigned int numChildren)
+{
+  gasAnimation* animation = calloc(1, sizeof(_gasAnimation));
+  animation->state = GAS_ANIMATION_STATE_NOT_STARTED;
+  animation->type = GAS_ANIMATION_TYPE_SEQUENTIAL;
+  animation->sequentialAnimation.numChildren = numChildren;
+  animation->sequentialAnimation.currentIndex = 0;
+  animation->sequentialAnimation.children = calloc(numChildren, sizeof(gasAnimation*));
+  memcpy(animation->sequentialAnimation.children, children, numChildren * sizeof(gasAnimation*));
+
+  return animation;
+}
+
+
+gasAnimation* gasPauseAnimationNew(const float duration)
+{
+  gasAnimation* animation = calloc(1, sizeof(_gasAnimation));
+  animation->state = GAS_ANIMATION_STATE_NOT_STARTED;
+  animation->type = GAS_ANIMATION_TYPE_SEQUENTIAL;
+  animation->pauseAnimation.duration = duration;
+  return animation;
+}
+
+
+gasAnimation* gasParallelAnimationNew(gasAnimation** children, const unsigned int numChildren)
+{
+  gasAnimation* animation = calloc(1, sizeof(_gasAnimation));
+  animation->state = GAS_ANIMATION_STATE_NOT_STARTED;
+  animation->type = GAS_ANIMATION_TYPE_PARALLEL;
+  animation->parallelAnimation.numChildren = numChildren;
+  animation->parallelAnimation.children = calloc(numChildren, sizeof(gasAnimation*));
+  memcpy(animation->parallelAnimation.children, children, numChildren * sizeof(gasAnimation*));
+  return animation;
 }

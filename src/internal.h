@@ -43,6 +43,7 @@ typedef struct _gasPauseAnimation {
 typedef struct _gasSequentialAnimation {
   struct _gasAnimation** children;
   unsigned int numChildren;
+  unsigned int currentIndex;
 } _gasSequentialAnimation;
 
 typedef struct _gasParallelAnimation {

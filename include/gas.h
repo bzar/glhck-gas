@@ -45,6 +45,10 @@ gasAnimation* gasNumberAnimationToNew(gasNumberAnimationTarget const target, gas
 gasAnimation* gasNumberAnimationDeltaNew(gasNumberAnimationTarget const target, gasEasingType const easing,
                                          float const delta, float const duration);
 
+gasAnimation* gasPauseAnimationNew(float const duration);
+gasAnimation* gasSequentialAnimationNew(gasAnimation** children, unsigned int const numChildren);
+gasAnimation* gasParallelAnimationNew(gasAnimation** children, unsigned int const numChildren);
+
 void gasAnimationFree(gasAnimation* animation);
 
 gasBoolean gasAnimate(gasAnimation* animation, glhckObject* object, float const delta);
