@@ -160,7 +160,7 @@ float _gasAnimate(gasAnimation* animation, glhckObject* object, float const delt
 
   float left = delta;
 
-  while (animation->loops > animation->loop && left > 0)
+  while (_gasLoopsLeft(animation) && left > 0)
   {
     switch (animation->type)
     {
@@ -171,7 +171,7 @@ float _gasAnimate(gasAnimation* animation, glhckObject* object, float const delt
       default: assert(0);
     }
 
-    if (animation->state == GAS_ANIMATION_STATE_FINISHED && animation->loops > animation->loop )
+    if (animation->state == GAS_ANIMATION_STATE_FINISHED && _gasLoopsLeft(animation))
     {
       _gasAnimationResetCurrentLoop(animation);
       animation->loop += 1;
@@ -412,4 +412,17 @@ float _gasClamp(float const value, float const minValue, float const maxValue)
 float _gasLoopsLeft(_gasAnimation* animation)
 {
   return animation->loops > animation->loop || animation->loops == -1;
+}
+
+gasAnimationState gasAnimationGetState(gasAnimation* animation)
+{
+  return animation->state;
+}
+
+
+gasAnimation* gasAnimationClone(gasAnimation* animation)
+{
+  gasAnimation* newAnimation = _gasAnimationNew(animation->type);
+  *newAnimation = *animation;
+  return newAnimation;
 }

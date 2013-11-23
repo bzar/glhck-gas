@@ -15,7 +15,7 @@ int main(int argc, char** argv)
     return EXIT_FAILURE;
 
   glfwWindowHint(GLFW_DEPTH_BITS, 24);
-  GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "gas-test-compound", NULL, NULL);
+  GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "gas-test-looping", NULL, NULL);
   glfwMakeContextCurrent(window);
 
   if(!window)
@@ -42,30 +42,26 @@ int main(int argc, char** argv)
 
   glhckObject* cube1 = glhckCubeNew(10);
   glhckObjectPositionf(cube1, 0, HEIGHT/2, 0);
-  gasAnimation* animation1 = gasNumberAnimationNewFromTo(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_LINEAR, 0.0f, 400.0f, 1.0f);
-  gasAnimation* animation2 = gasNumberAnimationNewFromTo(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_OUT, 240.0f, 0.0f, 1.0f);
-  gasAnimation* animation3 = gasNumberAnimationNewFromTo(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_IN, 0.0f, 240.0f, 1.0f);
-  gasAnimation* animation4 = gasNumberAnimationNewFromTo(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_LINEAR, 400.0f, 800.0f, 1.0f);
-  gasAnimation* animations[] = { animation1, animation2, animation3, animation4 };
-  gasAnimation* animation1234 = gasSequentialAnimationNew(animations, 4);
+  gasAnimation* animation1 = gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_QUAD_IN, 80.0f, 0.5f);
+  gasAnimationLoop(animation1);
 
   glhckObject* cube2 = glhckCubeNew(10);
   glhckObjectPositionf(cube2, WIDTH/2 + 100, HEIGHT/2, 0);
   gasAnimation* topRight[] = {
-    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_QUAD_IN, -100.0f, 1.0f),
-    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_OUT, -100.0f, 1.0f)
+    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_QUAD_IN, -100.0f, 0.3f),
+    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_OUT, -100.0f, 0.3f)
   };
   gasAnimation* topLeft[] = {
-    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_QUAD_OUT, -100.0f, 1.0f),
-    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_IN, 100.0f, 1.0f)
+    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_QUAD_OUT, -100.0f, 0.3f),
+    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_IN, 100.0f, 0.3f)
   };
   gasAnimation* bottomLeft[] = {
-    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_QUAD_IN, 100.0f, 1.0f),
-    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_OUT, 100.0f, 1.0f)
+    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_QUAD_IN, 100.0f, 0.3f),
+    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_OUT, 100.0f, 0.3f)
   };
   gasAnimation* bottomRight[] = {
-    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_QUAD_OUT, 100.0f, 1.0f),
-    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_IN, -100.0f, 1.0f)
+    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_QUAD_OUT, 100.0f, 0.3f),
+    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_IN, -100.0f, 0.3f)
   };
 
   gasAnimation* circleParts[] = {
@@ -76,6 +72,7 @@ int main(int argc, char** argv)
   };
 
   gasAnimation* circle = gasSequentialAnimationNew(circleParts, 4);
+  gasAnimationLoopTimes(circle, 3);
 
   float time = glfwGetTime();
   while(time < 6)
@@ -86,7 +83,7 @@ int main(int argc, char** argv)
 
     glfwPollEvents();
 
-    gasAnimate(animation1234, cube1, delta);
+    gasAnimate(animation1, cube1, delta);
     gasAnimate(circle, cube2, delta);
 
     glhckRenderClear(GLHCK_DEPTH_BUFFER | GLHCK_COLOR_BUFFER);
@@ -98,7 +95,7 @@ int main(int argc, char** argv)
     glfwSwapBuffers(window);
   }
 
-  gasAnimationFree(animation1234);
+  gasAnimationFree(animation1);
   glhckObjectFree(cube1);
 
   gasAnimationFree(circle);

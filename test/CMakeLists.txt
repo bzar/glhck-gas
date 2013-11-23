@@ -14,3 +14,6 @@ target_link_libraries(gas-simple gas glhck glfw ${GLFW_LIBRARIES})
 
 add_executable(gas-compound compound.c)
 target_link_libraries(gas-compound gas glhck glfw ${GLFW_LIBRARIES})
+
+add_executable(gas-looping looping.c)
+target_link_libraries(gas-looping gas glhck glfw ${GLFW_LIBRARIES})

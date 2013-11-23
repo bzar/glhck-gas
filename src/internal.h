@@ -10,12 +10,6 @@ typedef enum _gasAnimationType {
   GAS_ANIMATION_TYPE_PARALLEL
 } _gasAnimationType;
 
-typedef enum _gasAnimationState {
-  GAS_ANIMATION_STATE_NOT_STARTED,
-  GAS_ANIMATION_STATE_RUNNING,
-  GAS_ANIMATION_STATE_FINISHED
-} _gasAnimationState;
-
 typedef enum _gasNumberAnimationType {
   GAS_NUMBER_ANIMATION_TYPE_FROM_TO,
   GAS_NUMBER_ANIMATION_TYPE_FROM_DELTA,
@@ -53,7 +47,7 @@ typedef struct _gasParallelAnimation {
 
 typedef struct _gasAnimation {
   _gasAnimationType type;
-  _gasAnimationState state;
+  gasAnimationState state;
   int loops;
   int loop;
 

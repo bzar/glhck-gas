@@ -13,6 +13,12 @@ typedef enum gasBoolean {
   GAS_TRUE = 1
 } gasBoolean;
 
+typedef enum gasAnimationState {
+  GAS_ANIMATION_STATE_NOT_STARTED,
+  GAS_ANIMATION_STATE_RUNNING,
+  GAS_ANIMATION_STATE_FINISHED
+} gasAnimationState;
+
 typedef enum gasNumberAnimationTarget {
   GAS_NUMBER_ANIMATION_TARGET_X,
   GAS_NUMBER_ANIMATION_TARGET_Y,
@@ -21,8 +27,6 @@ typedef enum gasNumberAnimationTarget {
   GAS_NUMBER_ANIMATION_TARGET_ROT_Y,
   GAS_NUMBER_ANIMATION_TARGET_ROT_Z
 } gasNumberAnimationTarget;
-
-
 
 typedef enum gasEasingType {
   GAS_EASING_LINEAR,
@@ -49,9 +53,13 @@ gasAnimation* gasPauseAnimationNew(float const duration);
 gasAnimation* gasSequentialAnimationNew(gasAnimation** children, unsigned int const numChildren);
 gasAnimation* gasParallelAnimationNew(gasAnimation** children, unsigned int const numChildren);
 
+gasAnimation* gasAnimationClone(gasAnimation* animation);
+
 void gasAnimationFree(gasAnimation* animation);
 
 gasBoolean gasAnimate(gasAnimation* animation, glhckObject* object, float const delta);
+
+gasAnimationState gasAnimationGetState(gasAnimation* animation);
 
 void gasAnimationLoopTimes(gasAnimation* animation, unsigned int times);
 void gasAnimationLoop(gasAnimation* animation);
