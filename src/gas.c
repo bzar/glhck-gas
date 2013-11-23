@@ -41,12 +41,108 @@ gasAnimation* gasNumberAnimationNewDelta(gasNumberAnimationTarget const target, 
   return _gasNumberAnimationNew(target, easing, GAS_NUMBER_ANIMATION_TYPE_DELTA, 0.0f, delta, duration);
 }
 
-gasAnimation* _gasNumberAnimationNew(gasNumberAnimationTarget const target, gasEasingType const easing,
-                                     _gasNumberAnimationType const type, float const a, float const b, float const duration)
+void gasAnimationFree(gasAnimation* animation)
+{
+  switch (animation->type)
+  {
+    case GAS_ANIMATION_TYPE_NUMBER: free(animation); break;
+    case GAS_ANIMATION_TYPE_PAUSE: free(animation); break;
+    case GAS_ANIMATION_TYPE_SEQUENTIAL:
+    {
+      int i;
+      for(i = 0; i < animation->sequentialAnimation.numChildren; ++i)
+      {
+        gasAnimationFree(animation->sequentialAnimation.children[i]);
+      }
+      free(animation->sequentialAnimation.children);
+      free(animation);
+      break;
+    }
+    case GAS_ANIMATION_TYPE_PARALLEL:
+    {
+      int i;
+      for(i = 0; i < animation->parallelAnimation.numChildren; ++i)
+      {
+        gasAnimationFree(animation->parallelAnimation.children[i]);
+      }
+      free(animation->parallelAnimation.children);
+      free(animation);
+      break;
+    }
+    default: assert(0);
+  }
+}
+
+gasAnimation* gasSequentialAnimationNew(gasAnimation** children, const unsigned int numChildren)
+{
+  gasAnimation* animation = _gasAnimationNew(GAS_ANIMATION_TYPE_SEQUENTIAL);
+  animation->sequentialAnimation.numChildren = numChildren;
+  animation->sequentialAnimation.currentIndex = 0;
+  animation->sequentialAnimation.children = calloc(numChildren, sizeof(gasAnimation*));
+  memcpy(animation->sequentialAnimation.children, children, numChildren * sizeof(gasAnimation*));
+
+  return animation;
+}
+
+
+gasAnimation* gasPauseAnimationNew(const float duration)
+{
+  gasAnimation* animation = _gasAnimationNew(GAS_ANIMATION_TYPE_PAUSE);
+  animation->pauseAnimation.duration = duration;
+  animation->pauseAnimation.time = 0.0f;
+  return animation;
+}
+
+
+gasAnimation* gasParallelAnimationNew(gasAnimation** children, const unsigned int numChildren)
+{
+  gasAnimation* animation = _gasAnimationNew(GAS_ANIMATION_TYPE_PARALLEL);
+  animation->parallelAnimation.numChildren = numChildren;
+  animation->parallelAnimation.children = calloc(numChildren, sizeof(gasAnimation*));
+  memcpy(animation->parallelAnimation.children, children, numChildren * sizeof(gasAnimation*));
+  return animation;
+}
+
+gasBoolean gasAnimate(gasAnimation* animation, glhckObject* object, float const delta)
+{
+  _gasAnimate(animation, object, delta);
+  return animation->state != GAS_ANIMATION_STATE_FINISHED ? GAS_TRUE : GAS_FALSE;
+}
+
+void gasAnimationLoopTimes(gasAnimation* animation, unsigned int times)
+{
+  animation->loops = times;
+}
+
+
+void gasAnimationLoop(gasAnimation* animation)
+{
+  animation->loops = -1;
+}
+
+
+void gasAnimationReset(gasAnimation* animation)
+{
+  animation->loop = 0;
+  _gasAnimationResetCurrentLoop(animation);
+}
+
+// INTERNAL
+
+gasAnimation* _gasAnimationNew(_gasAnimationType type)
 {
   gasAnimation* animation = calloc(1, sizeof(_gasAnimation));
   animation->state = GAS_ANIMATION_STATE_NOT_STARTED;
-  animation->type = GAS_ANIMATION_TYPE_NUMBER;
+  animation->type = type;
+  animation->loops = 1;
+  animation->loop = 0;
+  return animation;
+}
+
+gasAnimation* _gasNumberAnimationNew(gasNumberAnimationTarget const target, gasEasingType const easing,
+                                     _gasNumberAnimationType const type, float const a, float const b, float const duration)
+{
+  gasAnimation* animation = _gasAnimationNew(GAS_ANIMATION_TYPE_NUMBER);
   animation->numberAnimation.type = type;
   animation->numberAnimation.target = target;
   animation->numberAnimation.a = a;
@@ -57,33 +153,38 @@ gasAnimation* _gasNumberAnimationNew(gasNumberAnimationTarget const target, gasE
   return animation;
 }
 
-gasBoolean gasAnimate(gasAnimation* animation, glhckObject* object, float const delta)
-{
-  _gasAnimate(animation, object, delta);
-  return animation->state != GAS_ANIMATION_STATE_FINISHED ? GAS_TRUE : GAS_FALSE;
-}
-
 float _gasAnimate(gasAnimation* animation, glhckObject* object, float const delta)
 {
   if (animation->state == GAS_ANIMATION_STATE_FINISHED)
     return delta;
 
-  switch (animation->type)
+  float left = delta;
+
+  while (animation->loops > animation->loop && left > 0)
   {
-    case GAS_ANIMATION_TYPE_NUMBER: return _gasAnimateNumberAnimation(animation, object, delta); break;
-    case GAS_ANIMATION_TYPE_PAUSE: return _gasAnimatePauseAnimation(animation, object, delta); break;
-    case GAS_ANIMATION_TYPE_SEQUENTIAL: return _gasAnimateSequentialAnimation(animation, object, delta); break;
-    case GAS_ANIMATION_TYPE_PARALLEL: return _gasAnimateParallelAnimation(animation, object, delta); break;
-    default: assert(0);
+    switch (animation->type)
+    {
+      case GAS_ANIMATION_TYPE_NUMBER: left = _gasAnimateNumberAnimation(animation, object, delta); break;
+      case GAS_ANIMATION_TYPE_PAUSE: left = _gasAnimatePauseAnimation(animation, object, delta); break;
+      case GAS_ANIMATION_TYPE_SEQUENTIAL: left = _gasAnimateSequentialAnimation(animation, object, delta); break;
+      case GAS_ANIMATION_TYPE_PARALLEL: left = _gasAnimateParallelAnimation(animation, object, delta); break;
+      default: assert(0);
+    }
+
+    if (animation->state == GAS_ANIMATION_STATE_FINISHED && animation->loops > animation->loop )
+    {
+      _gasAnimationResetCurrentLoop(animation);
+      animation->loop += 1;
+    }
   }
+
+  return left;
 }
 
 float _gasAnimateNumberAnimation(gasAnimation* animation, glhckObject* object, float const delta)
 {
   if (animation->state == GAS_ANIMATION_STATE_NOT_STARTED)
   {
-    animation->numberAnimation.time = 0.0f;
-
     switch (animation->numberAnimation.type)
     {
       case GAS_NUMBER_ANIMATION_TYPE_FROM:
@@ -206,6 +307,51 @@ float _gasAnimateParallelAnimation(gasAnimation* animation, glhckObject* object,
   return minLeft;
 }
 
+void _gasAnimationResetCurrentLoop(gasAnimation* animation)
+{
+  animation->state = GAS_ANIMATION_STATE_NOT_STARTED;
+
+  switch (animation->type)
+  {
+    case GAS_ANIMATION_TYPE_NUMBER: return _gasAnimationResetNumberAnimation(animation); break;
+    case GAS_ANIMATION_TYPE_PAUSE: return _gasAnimationResetPauseAnimation(animation); break;
+    case GAS_ANIMATION_TYPE_SEQUENTIAL: return _gasAnimationResetSequentialAnimation(animation); break;
+    case GAS_ANIMATION_TYPE_PARALLEL: return _gasAnimationResetParallelAnimation(animation); break;
+    default: assert(0);
+  }
+}
+
+void _gasAnimationResetNumberAnimation(gasAnimation* animation)
+{
+  animation->numberAnimation.time = 0.0f;
+}
+
+void _gasAnimationResetPauseAnimation(gasAnimation* animation)
+{
+  animation->pauseAnimation.time = 0.0f;
+}
+
+void _gasAnimationResetSequentialAnimation(gasAnimation* animation)
+{
+  animation->sequentialAnimation.currentIndex = 0;
+  int i;
+  for (i = 0; i < animation->sequentialAnimation.numChildren; ++i)
+  {
+    gasAnimation* child = animation->sequentialAnimation.children[i];
+    gasAnimationReset(child);
+  }
+}
+
+void _gasAnimationResetParallelAnimation(gasAnimation* animation)
+{
+  int i;
+  for (i = 0; i < animation->parallelAnimation.numChildren; ++i)
+  {
+    gasAnimation* child = animation->parallelAnimation.children[i];
+    gasAnimationReset(child);
+  }
+}
+
 float _gasNumberAnimationGetTargetValue(gasNumberAnimationTarget target, glhckObject* object)
 {
   switch (target)
@@ -263,71 +409,7 @@ float _gasClamp(float const value, float const minValue, float const maxValue)
   return value <= minValue ? minValue : value >= maxValue ? maxValue : value;
 }
 
-
-void gasAnimationFree(gasAnimation* animation)
+float _gasLoopsLeft(_gasAnimation* animation)
 {
-  switch (animation->type)
-  {
-    case GAS_ANIMATION_TYPE_NUMBER: free(animation); break;
-    case GAS_ANIMATION_TYPE_PAUSE: free(animation); break;
-    case GAS_ANIMATION_TYPE_SEQUENTIAL:
-    {
-      int i;
-      for(i = 0; i < animation->sequentialAnimation.numChildren; ++i)
-      {
-        gasAnimationFree(animation->sequentialAnimation.children[i]);
-      }
-      free(animation->sequentialAnimation.children);
-      free(animation);
-      break;
-    }
-    case GAS_ANIMATION_TYPE_PARALLEL:
-    {
-      int i;
-      for(i = 0; i < animation->parallelAnimation.numChildren; ++i)
-      {
-        gasAnimationFree(animation->parallelAnimation.children[i]);
-      }
-      free(animation->parallelAnimation.children);
-      free(animation);
-      break;
-    }
-    default: assert(0);
-  }
-}
-
-
-gasAnimation* gasSequentialAnimationNew(gasAnimation** children, const unsigned int numChildren)
-{
-  gasAnimation* animation = calloc(1, sizeof(_gasAnimation));
-  animation->state = GAS_ANIMATION_STATE_NOT_STARTED;
-  animation->type = GAS_ANIMATION_TYPE_SEQUENTIAL;
-  animation->sequentialAnimation.numChildren = numChildren;
-  animation->sequentialAnimation.currentIndex = 0;
-  animation->sequentialAnimation.children = calloc(numChildren, sizeof(gasAnimation*));
-  memcpy(animation->sequentialAnimation.children, children, numChildren * sizeof(gasAnimation*));
-
-  return animation;
-}
-
-
-gasAnimation* gasPauseAnimationNew(const float duration)
-{
-  gasAnimation* animation = calloc(1, sizeof(_gasAnimation));
-  animation->state = GAS_ANIMATION_STATE_NOT_STARTED;
-  animation->type = GAS_ANIMATION_TYPE_SEQUENTIAL;
-  animation->pauseAnimation.duration = duration;
-  return animation;
-}
-
-
-gasAnimation* gasParallelAnimationNew(gasAnimation** children, const unsigned int numChildren)
-{
-  gasAnimation* animation = calloc(1, sizeof(_gasAnimation));
-  animation->state = GAS_ANIMATION_STATE_NOT_STARTED;
-  animation->type = GAS_ANIMATION_TYPE_PARALLEL;
-  animation->parallelAnimation.numChildren = numChildren;
-  animation->parallelAnimation.children = calloc(numChildren, sizeof(gasAnimation*));
-  memcpy(animation->parallelAnimation.children, children, numChildren * sizeof(gasAnimation*));
-  return animation;
+  return animation->loops > animation->loop || animation->loops == -1;
 }

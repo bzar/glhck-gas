@@ -54,6 +54,8 @@ typedef struct _gasParallelAnimation {
 typedef struct _gasAnimation {
   _gasAnimationType type;
   _gasAnimationState state;
+  int loops;
+  int loop;
 
   union {
     _gasNumberAnimation numberAnimation;
@@ -63,6 +65,7 @@ typedef struct _gasAnimation {
   };
 } _gasAnimation;
 
+gasAnimation* _gasAnimationNew(_gasAnimationType type);
 gasAnimation* _gasNumberAnimationNew(gasNumberAnimationTarget const target, gasEasingType const easing, _gasNumberAnimationType const type, float const a, float const b, float const duration);
 
 float _gasAnimate(gasAnimation* animation, glhckObject* object, float const delta);
@@ -71,9 +74,16 @@ float _gasAnimatePauseAnimation(gasAnimation* animation, glhckObject* object, fl
 float _gasAnimateSequentialAnimation(gasAnimation* animation, glhckObject* object, float const delta);
 float _gasAnimateParallelAnimation(gasAnimation* animation, glhckObject* object, float const delta);
 
+void _gasAnimationResetCurrentLoop(gasAnimation* animation);
+void _gasAnimationResetNumberAnimation(gasAnimation* animation);
+void _gasAnimationResetPauseAnimation(gasAnimation* animation);
+void _gasAnimationResetSequentialAnimation(gasAnimation* animation);
+void _gasAnimationResetParallelAnimation(gasAnimation* animation);
+
 float _gasNumberAnimationGetTargetValue(gasNumberAnimationTarget target, glhckObject* object);
 void _gasNumberAnimationSetTargetValue(gasNumberAnimationTarget target, glhckObject* object, float const value);
 
 float _gasClamp(float const value, float const minValue, float const maxValue);
+float _gasLoopsLeft(_gasAnimation* animation);
 
 #endif // GAS_INTERNAL_H

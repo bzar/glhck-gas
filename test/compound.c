@@ -52,20 +52,20 @@ int main(int argc, char** argv)
   glhckObject* cube2 = glhckCubeNew(10);
   glhckObjectPositionf(cube2, WIDTH/2 + 100, HEIGHT/2, 0);
   gasAnimation* topRight[] = {
-    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_QUAD_IN, -100.0f, 1.0f),
-    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_OUT, -100.0f, 1.0f)
+    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_QUAD_IN, -100.0f, 0.3f),
+    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_OUT, -100.0f, 0.3f)
   };
   gasAnimation* topLeft[] = {
-    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_QUAD_OUT, -100.0f, 1.0f),
-    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_IN, 100.0f, 1.0f)
+    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_QUAD_OUT, -100.0f, 0.3f),
+    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_IN, 100.0f, 0.3f)
   };
   gasAnimation* bottomLeft[] = {
-    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_QUAD_IN, 100.0f, 1.0f),
-    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_OUT, 100.0f, 1.0f)
+    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_QUAD_IN, 100.0f, 0.3f),
+    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_OUT, 100.0f, 0.3f)
   };
   gasAnimation* bottomRight[] = {
-    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_QUAD_OUT, 100.0f, 1.0f),
-    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_IN, -100.0f, 1.0f)
+    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_QUAD_OUT, 100.0f, 0.3f),
+    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_IN, -100.0f, 0.3f)
   };
 
   gasAnimation* circleParts[] = {
@@ -76,6 +76,7 @@ int main(int argc, char** argv)
   };
 
   gasAnimation* circle = gasSequentialAnimationNew(circleParts, 4);
+  gasAnimationLoopTimes(circle, 3);
 
   float time = glfwGetTime();
   while(time < 6)

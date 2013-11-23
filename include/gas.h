@@ -53,6 +53,11 @@ void gasAnimationFree(gasAnimation* animation);
 
 gasBoolean gasAnimate(gasAnimation* animation, glhckObject* object, float const delta);
 
+void gasAnimationLoopTimes(gasAnimation* animation, unsigned int times);
+void gasAnimationLoop(gasAnimation* animation);
+
+void gasAnimationReset(gasAnimation* animation);
+
 #ifdef __cplusplus
 }
 #endif
