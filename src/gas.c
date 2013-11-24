@@ -171,10 +171,14 @@ float _gasAnimate(gasAnimation* animation, glhckObject* object, float const delt
       default: assert(0);
     }
 
-    if (animation->state == GAS_ANIMATION_STATE_FINISHED && _gasLoopsLeft(animation))
+    if (animation->state == GAS_ANIMATION_STATE_FINISHED)
     {
-      _gasAnimationResetCurrentLoop(animation);
       animation->loop += 1;
+      if(_gasLoopsLeft(animation))
+      {
+        _gasAnimationResetCurrentLoop(animation);
+      }
+
     }
   }
 
