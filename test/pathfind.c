@@ -17,9 +17,9 @@ int LEVEL[LEVEL_SIZE * LEVEL_SIZE] = {
   1,1,2,2,3,3,3,4,
   1,1,2,2,3,3,4,5,
   3,4,4,5,3,4,5,6,
-  3,4,5,5,3,4,5,6,
-  8,5,6,6,4,5,6,7,
-  9,8,9,7,6,7,8,8,
+  3,4,5,5,3,4,5,7,
+  8,5,6,5,4,5,6,6,
+  9,8,9,7,6,7,6,9,
 };
 
 char RUNNING = 1;
@@ -103,30 +103,142 @@ kmRay3* createPointerRay(kmRay3* pOut, float const x, float const y, float const
   return pOut;
 }
 
+typedef struct PathNode {
+  int x;
+  int z;
+  int cost;
+  struct PathNode* from;
+  struct PathNode* next;
+} PathNode;
+
+int nodeDistance(PathNode* node, int x, int z)
+{
+  return abs(node->x - x) + abs(node->z - z);
+}
+
 LevelPosition* findPath(int fromX, int fromZ, int toX, int toZ, int* level, int levelSize, int* pathLength)
 {
-  // TODO: real routing
-  *pathLength = abs(fromZ - toZ) + abs(fromX - toX) + 1;
-  LevelPosition* path = calloc(*pathLength, sizeof(LevelPosition));
+  PathNode* queue = calloc(1, sizeof(PathNode));
+  queue->x = fromX;
+  queue->z = fromZ;
+  queue->cost = 0;
+  queue->from = NULL;
+  queue->next = NULL;
 
-  int i = 0;
+  PathNode* visited = NULL;
+  PathNode* result = NULL;
 
-  int x;
-  for(x = fromX; x != toX; x += (x < toX ? 1 :-1), ++i)
+  while (queue)
   {
-    path[i].x = x;
-    path[i].z = fromZ;
+    // Take node from queue
+    PathNode* node = queue;
+
+    // Check end condition
+    if(node->x == toX && node->z == toZ)
+    {
+      result = node;
+      break;
+    }
+
+    // Remove node from queue
+    queue = node->next;
+
+    // Find previous route to same location
+    PathNode* existing;
+    for(existing = visited; existing && (existing->x != node->x || existing->z != node->z); existing = existing->next);
+
+    // ...if found, check if it was shorter. If it was, discard this route, else replace that route with this.
+    if(existing)
+    {
+      if(existing->cost <= node->cost)
+      {
+        free(node);
+        continue;
+      }
+      else
+      {
+        existing->cost = node->cost;
+        existing->from = node->from;
+        free(node);
+        node = existing;
+      }
+    }
+
+    // Define neighbor nodes
+    PathNode neighbors[4] = {
+      { node->x - 1, node->z, node->cost + 1, node, NULL },
+      { node->x + 1, node->z, node->cost + 1, node, NULL },
+      { node->x, node->z - 1, node->cost + 1, node, NULL },
+      { node->x, node->z + 1, node->cost + 1, node, NULL }
+    };
+
+    int i;
+    for (i = 0; i < 4; ++i)
+    {
+      // Check if neighbor is inside the level
+      if (neighbors[i].x < 0 || neighbors[i].x >= levelSize ||
+         neighbors[i].z < 0 || neighbors[i].z >= levelSize)
+        continue;
+
+      // Check if neighbor can be moved to
+      if (level[neighbors[i].x + neighbors[i].z * levelSize] - level[node->x + node->z * levelSize] > 2)
+        continue;
+
+      // Create node for neighbor
+      PathNode* child = calloc(1, sizeof(PathNode));
+      *child = neighbors[i];
+
+      // Insert child node to queue
+      if (queue && nodeDistance(queue, toX, toZ) <= nodeDistance(child, toX, toZ))
+      {
+        PathNode* n;
+        for(n = queue; n->next && nodeDistance(n->next, toX, toZ) <= nodeDistance(child, toX, toZ); n = n->next);
+        child->next = n->next;
+        n->next = child;
+      }
+      else
+      {
+        child->next = queue;
+        queue = child;
+      }
+    }
+
+    // Insert node to visited if not already there
+    if(!existing)
+    {
+      node->next = visited;
+      visited = node;
+    }
   }
 
-  int z;
-  for(z = fromZ; z != toZ; z += (z < toZ ? 1 :-1), ++i)
+  *pathLength = 0;
+  LevelPosition* path = NULL;
+
+  if (result)
   {
-    path[i].x = toX;
-    path[i].z = z;
+    PathNode* node;
+    // Determine path length
+    for(node = result; node; node = node->from)
+      *pathLength += 1;
+
+    // Populate path array
+    path = calloc(*pathLength, sizeof(LevelPosition));
+    int i;
+    for(i = *pathLength - 1, node = result; node; --i, node = node->from)
+    {
+      path[i].x = node->x;
+      path[i].z = node->z;
+    }
   }
 
-  path[*pathLength - 1].x = toX;
-  path[*pathLength - 1].z = toZ;
+  {
+    // Free nodes
+    PathNode* node;
+    for(node = queue; node; node = node->next)
+      free(node);
+    for(node = visited; node; node = node->next)
+      free(node);
+  }
 
   return path;
 }
@@ -135,9 +247,10 @@ gasAnimation* moveStep(kmVec3 const* from, kmVec3 const* to)
 {
   gasAnimation* x = gasNumberAnimationNewFromTo(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_LINEAR, from->x, to->x, 1.0f);
   float peak = (from->y > to->y ? from->y : to->y) + 4.0f;
+  float t = (from->y > to->y ? 0.3f : from->y < to->y ? 0.7f : 0.5f);
   gasAnimation* ys[2] = {
-    gasNumberAnimationNewFromTo(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_OUT, from->y, peak, 0.5f),
-    gasNumberAnimationNewFromTo(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_IN, peak, to->y, 0.5f)
+    gasNumberAnimationNewFromTo(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_OUT, from->y, peak, t),
+    gasNumberAnimationNewFromTo(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_IN, peak, to->y, 1.0f - t)
   };
   gasAnimation* y = gasSequentialAnimationNew(ys, 2);
 
@@ -151,6 +264,12 @@ gasAnimation* move(int fromX, int fromZ, int toX, int toZ, int* level, int level
 {
   int pathLength;
   LevelPosition* path = findPath(fromX, fromZ, toX, toZ, level, levelSize, &pathLength);
+
+  if(!path)
+  {
+    return NULL;
+  }
+
   gasAnimation** animations = calloc(pathLength - 1, sizeof(gasAnimation*));
 
   int i;
@@ -271,8 +390,11 @@ int main(int argc, char** argv)
         if(MOUSE_BUTTON_1 && !currentAnimation)
         {
           currentAnimation = move(px, pz, x, z, LEVEL, LEVEL_SIZE);
-          px = x;
-          pz = z;
+          if(currentAnimation)
+          {
+            px = x;
+            pz = z;
+          }
         }
       }
       else
@@ -303,7 +425,7 @@ int main(int argc, char** argv)
     glhckRender();
 
     glhckTextClear(text);
-    sprintf(mousePosText, "Mouse position: (%f, %f) | (%f, %f, %f)->(%f, %f, %f) | d=%f",
+    sprintf(mousePosText, "Mouse position: (%f, %f) | (%f, %f, %f)->(%f, %f, %f)",
             CURSOR_X, CURSOR_Y,
             pointerRay.start.x, pointerRay.start.y, pointerRay.start.z,
             pointerRay.dir.x, pointerRay.dir.y, pointerRay.dir.z);
