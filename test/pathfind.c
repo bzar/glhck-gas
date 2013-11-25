@@ -233,11 +233,22 @@ LevelPosition* findPath(int fromX, int fromZ, int toX, int toZ, int* level, int 
 
   {
     // Free nodes
-    PathNode* node;
-    for(node = queue; node; node = node->next)
+    PathNode* node = queue;
+    PathNode* temp = NULL;
+    while(node)
+    {
+      temp = node->next;
       free(node);
-    for(node = visited; node; node = node->next)
+      node = temp;
+    }
+
+    node = visited;
+    while(node)
+    {
+      temp = node->next;
       free(node);
+      node = temp;
+    }
   }
 
   return path;
