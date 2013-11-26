@@ -1,7 +1,10 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 project(gas)
 
+OPTION(GAS_BUILD_TESTS "Build GAS tests/examples" OFF)
+
 set(GLHCK_BUILD_EXAMPLES OFF CACHE BOOL "Skip GLHCK examples")
+
 add_subdirectory(lib)
 
 include_directories(
@@ -17,4 +20,6 @@ add_library(gas
     ${SOURCES}
 )
 
-add_subdirectory(test)
+if(GAS_BUILD_TESTS)
+    add_subdirectory(test)
+endif(GAS_BUILD_TESTS)
