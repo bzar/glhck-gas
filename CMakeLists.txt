@@ -1,7 +1,10 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 project(gas)
 
+include("cmake/subproject.cmake")
+
 OPTION(GAS_BUILD_TESTS "Build GAS tests/examples" OFF)
+
 
 set(GLHCK_BUILD_EXAMPLES OFF CACHE BOOL "Skip GLHCK examples")
 

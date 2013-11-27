@@ -1,1 +1,1 @@
-add_subdirectory(glhck)
+add_subproject(glhck)
