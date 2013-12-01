@@ -359,7 +359,7 @@ float _gasAnimateModelAnimation(gasAnimation* animation, glhckObject* object, fl
   }
   animation->modelAnimation.time += delta;
   float position = animation->modelAnimation.time / animation->modelAnimation.duration;
-  glhckAnimatorUpdate(animation->modelAnimation.animator, _gasClamp(position, 0.0f, 1.0f) * animation->modelAnimation.animationDuration / 25);
+  glhckAnimatorUpdate(animation->modelAnimation.animator, _gasClamp(position, 0.0f, 1.0f) * animation->modelAnimation.animationDuration);
   glhckAnimatorTransform(animation->modelAnimation.animator, object);
   if(animation->modelAnimation.time > animation->modelAnimation.duration)
   {
