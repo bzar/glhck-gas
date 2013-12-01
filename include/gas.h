@@ -52,6 +52,7 @@ gasAnimation* gasNumberAnimationNewDelta(gasNumberAnimationTarget const target, 
 gasAnimation* gasPauseAnimationNew(float const duration);
 gasAnimation* gasSequentialAnimationNew(gasAnimation** children, unsigned int const numChildren);
 gasAnimation* gasParallelAnimationNew(gasAnimation** children, unsigned int const numChildren);
+gasAnimation* gasModelAnimationNew(glhckObject* model, char const* name, float duration);
 
 gasAnimation* gasAnimationClone(gasAnimation* animation);
 

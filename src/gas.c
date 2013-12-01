@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <memory.h>
+#include <string.h>
 
 gasAnimation* gasNumberAnimationNewFromTo(gasNumberAnimationTarget const target, gasEasingType const easing,
                                           float const from, float const to, float const duration)
@@ -69,6 +70,12 @@ void gasAnimationFree(gasAnimation* animation)
       free(animation);
       break;
     }
+    case GAS_ANIMATION_TYPE_MODEL:
+    {
+      glhckAnimatorFree(animation->modelAnimation.animator);
+      free(animation);
+      break;
+    }
     default: assert(0);
   }
 }
@@ -100,6 +107,38 @@ gasAnimation* gasParallelAnimationNew(gasAnimation** children, const unsigned in
   animation->parallelAnimation.numChildren = numChildren;
   animation->parallelAnimation.children = calloc(numChildren, sizeof(gasAnimation*));
   memcpy(animation->parallelAnimation.children, children, numChildren * sizeof(gasAnimation*));
+  return animation;
+}
+
+gasAnimation* gasModelAnimationNew(glhckObject* model, const char* name, float duration)
+{
+  gasAnimation* animation = _gasAnimationNew(GAS_ANIMATION_TYPE_MODEL);
+  glhckAnimator* animator = glhckAnimatorNew();
+
+  unsigned int numAnimations;
+  glhckAnimation** animations = glhckObjectAnimations(model, &numAnimations);
+  glhckAnimation* modelAnimation = NULL;
+  int i;
+  for(i = 0; i < numAnimations; ++i)
+  {
+    if(strcmp(name, glhckAnimationGetName(animations[i])) == 0)
+    {
+      modelAnimation = animations[i];
+      break;
+    }
+  }
+
+  assert(modelAnimation);
+  glhckAnimatorAnimation(animator, modelAnimation);
+  animation->modelAnimation.animationDuration = glhckAnimationGetDuration(modelAnimation);
+
+  unsigned int numBones;
+  glhckBone** bones = glhckObjectBones(model, &numBones);
+  glhckAnimatorInsertBones(animator, bones, numBones);
+
+  animation->modelAnimation.animator = animator;
+  animation->modelAnimation.duration = duration;
+
   return animation;
 }
 
@@ -168,6 +207,7 @@ float _gasAnimate(gasAnimation* animation, glhckObject* object, float const delt
       case GAS_ANIMATION_TYPE_PAUSE: left = _gasAnimatePauseAnimation(animation, object, delta); break;
       case GAS_ANIMATION_TYPE_SEQUENTIAL: left = _gasAnimateSequentialAnimation(animation, object, delta); break;
       case GAS_ANIMATION_TYPE_PARALLEL: left = _gasAnimateParallelAnimation(animation, object, delta); break;
+      case GAS_ANIMATION_TYPE_MODEL: left = _gasAnimateModelAnimation(animation, object, delta); break;
       default: assert(0);
     }
 
@@ -311,6 +351,28 @@ float _gasAnimateParallelAnimation(gasAnimation* animation, glhckObject* object,
   return minLeft;
 }
 
+float _gasAnimateModelAnimation(gasAnimation* animation, glhckObject* object, float const delta)
+{
+  if(animation->modelAnimation.duration <= 0.0f) {
+    animation->state = GAS_ANIMATION_STATE_FINISHED;
+    return delta;
+  }
+  animation->modelAnimation.time += delta;
+  float position = animation->modelAnimation.time / animation->modelAnimation.duration;
+  glhckAnimatorUpdate(animation->modelAnimation.animator, _gasClamp(position, 0.0f, 1.0f) * animation->modelAnimation.animationDuration / 25);
+  glhckAnimatorTransform(animation->modelAnimation.animator, object);
+  if(animation->modelAnimation.time > animation->modelAnimation.duration)
+  {
+    animation->state = GAS_ANIMATION_STATE_FINISHED;
+    return animation->modelAnimation.time - animation->modelAnimation.duration;
+  }
+  else
+  {
+    animation->state = GAS_ANIMATION_STATE_RUNNING;
+    return 0.0f;
+  }
+}
+
 void _gasAnimationResetCurrentLoop(gasAnimation* animation)
 {
   animation->state = GAS_ANIMATION_STATE_NOT_STARTED;
@@ -321,6 +383,7 @@ void _gasAnimationResetCurrentLoop(gasAnimation* animation)
     case GAS_ANIMATION_TYPE_PAUSE: return _gasAnimationResetPauseAnimation(animation); break;
     case GAS_ANIMATION_TYPE_SEQUENTIAL: return _gasAnimationResetSequentialAnimation(animation); break;
     case GAS_ANIMATION_TYPE_PARALLEL: return _gasAnimationResetParallelAnimation(animation); break;
+    case GAS_ANIMATION_TYPE_MODEL: return _gasAnimationResetModelAnimation(animation); break;
     default: assert(0);
   }
 }
@@ -354,6 +417,11 @@ void _gasAnimationResetParallelAnimation(gasAnimation* animation)
     gasAnimation* child = animation->parallelAnimation.children[i];
     gasAnimationReset(child);
   }
+}
+
+void _gasAnimationResetModelAnimation(gasAnimation* animation)
+{
+  animation->modelAnimation.time = 0.0f;
 }
 
 float _gasNumberAnimationGetTargetValue(gasNumberAnimationTarget target, glhckObject* object)
