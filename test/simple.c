@@ -65,7 +65,7 @@ int main(int argc, char** argv)
     gasAnimate(animation2, cube2, delta);
     gasAnimate(animation3, cube3, delta);
 
-    glhckRenderClear(GLHCK_DEPTH_BUFFER | GLHCK_COLOR_BUFFER);
+    glhckRenderClear(GLHCK_DEPTH_BUFFER_BIT | GLHCK_COLOR_BUFFER_BIT);
 
     glhckObjectDraw(cube1);
     glhckObjectDraw(cube2);

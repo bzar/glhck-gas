@@ -20,3 +20,6 @@ target_link_libraries(gas-looping gas glhck glfw ${GLFW_LIBRARIES})
 
 add_executable(gas-pathfind pathfind.c)
 target_link_libraries(gas-pathfind gas glhck glfw ${GLFW_LIBRARIES})
+
+add_executable(gas-custom custom.c)
+target_link_libraries(gas-custom gas glhck glfw ${GLFW_LIBRARIES})

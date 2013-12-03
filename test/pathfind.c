@@ -80,10 +80,18 @@ glhckObject** createLevelObjects(int* level, int levelSize)
 kmRay3* createPointerRay(kmRay3* pOut, float const x, float const y, float const width, float const height, glhckFrustum const* frustum)
 {
   kmVec3 nu, nv, fu, fv;
-  kmVec3Subtract(&nu, &frustum->nearCorners[GLHCK_FRUSTUM_CORNER_BOTTOM_RIGHT], &frustum->nearCorners[GLHCK_FRUSTUM_CORNER_BOTTOM_LEFT]);
-  kmVec3Subtract(&nv, &frustum->nearCorners[GLHCK_FRUSTUM_CORNER_TOP_LEFT], &frustum->nearCorners[GLHCK_FRUSTUM_CORNER_BOTTOM_LEFT]);
-  kmVec3Subtract(&fu, &frustum->farCorners[GLHCK_FRUSTUM_CORNER_BOTTOM_RIGHT], &frustum->farCorners[GLHCK_FRUSTUM_CORNER_BOTTOM_LEFT]);
-  kmVec3Subtract(&fv, &frustum->farCorners[GLHCK_FRUSTUM_CORNER_TOP_LEFT], &frustum->farCorners[GLHCK_FRUSTUM_CORNER_BOTTOM_LEFT]);
+  kmVec3Subtract(&nu,
+                 &frustum->corners[GLHCK_FRUSTUM_CORNER_NEAR_BOTTOM_RIGHT],
+                 &frustum->corners[GLHCK_FRUSTUM_CORNER_NEAR_BOTTOM_LEFT]);
+  kmVec3Subtract(&nv,
+                 &frustum->corners[GLHCK_FRUSTUM_CORNER_NEAR_TOP_LEFT],
+                 &frustum->corners[GLHCK_FRUSTUM_CORNER_NEAR_BOTTOM_LEFT]);
+  kmVec3Subtract(&fu,
+                 &frustum->corners[GLHCK_FRUSTUM_CORNER_FAR_BOTTOM_RIGHT],
+                 &frustum->corners[GLHCK_FRUSTUM_CORNER_FAR_BOTTOM_LEFT]);
+  kmVec3Subtract(&fv,
+                 &frustum->corners[GLHCK_FRUSTUM_CORNER_FAR_TOP_LEFT],
+                 &frustum->corners[GLHCK_FRUSTUM_CORNER_FAR_BOTTOM_LEFT]);
   kmVec2 relativeMousePos = { x/width, (height-y)/height };
 
   kmVec3Scale(&nu, &nu, relativeMousePos.x);
@@ -91,8 +99,8 @@ kmRay3* createPointerRay(kmRay3* pOut, float const x, float const y, float const
   kmVec3Scale(&fu, &fu, relativeMousePos.x);
   kmVec3Scale(&fv, &fv, relativeMousePos.y);
 
-  pOut->start = frustum->nearCorners[GLHCK_FRUSTUM_CORNER_BOTTOM_LEFT];
-  pOut->dir = frustum->farCorners[GLHCK_FRUSTUM_CORNER_BOTTOM_LEFT];
+  pOut->start = frustum->corners[GLHCK_FRUSTUM_CORNER_NEAR_BOTTOM_LEFT];
+  pOut->dir = frustum->corners[GLHCK_FRUSTUM_CORNER_FAR_BOTTOM_LEFT];
 
   kmVec3Add(&pOut->start, &pOut->start, &nu);
   kmVec3Add(&pOut->start, &pOut->start, &nv);
@@ -425,7 +433,7 @@ int main(int argc, char** argv)
     }
 
     // RENDER
-    glhckRenderClear(GLHCK_DEPTH_BUFFER | GLHCK_COLOR_BUFFER);
+    glhckRenderClear(GLHCK_DEPTH_BUFFER_BIT | GLHCK_COLOR_BUFFER_BIT);
 
     for(i = 0; i < LEVEL_SIZE * LEVEL_SIZE; ++i)
     {

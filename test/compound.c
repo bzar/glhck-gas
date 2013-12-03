@@ -89,7 +89,7 @@ int main(int argc, char** argv)
     gasAnimate(animation1234, cube1, delta);
     gasAnimate(circle, cube2, delta);
 
-    glhckRenderClear(GLHCK_DEPTH_BUFFER | GLHCK_COLOR_BUFFER);
+    glhckRenderClear(GLHCK_DEPTH_BUFFER_BIT | GLHCK_COLOR_BUFFER_BIT);
 
     glhckObjectDraw(cube1);
     glhckObjectDraw(cube2);

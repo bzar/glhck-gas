@@ -76,6 +76,16 @@ void gasAnimationFree(gasAnimation* animation)
       free(animation);
       break;
     }
+    case GAS_ANIMATION_TYPE_ACTION:
+    {
+      free(animation);
+      break;
+    }
+    case GAS_ANIMATION_TYPE_CUSTOM:
+    {
+      free(animation);
+      break;
+    }
     default: assert(0);
   }
 }
@@ -140,6 +150,22 @@ gasAnimation* gasModelAnimationNew(glhckObject* model, const char* name, float d
   animation->modelAnimation.duration = duration;
 
   return animation;
+}
+
+gasAnimation* gasActionNew(gasActionCallback callback, gasActionResetCallback resetCallback, void* userdata)
+{
+  gasAnimation* animation = _gasAnimationNew(GAS_ANIMATION_TYPE_ACTION);
+  animation->action.callback = callback;
+  animation->action.resetCallback = resetCallback;
+  animation->action.userdata = userdata;
+}
+
+gasAnimation* gasCustomAnimationNew(gasCustomAnimationCallback callback, gasCustomAnimationResetCallback resetCallback, void* userdata)
+{
+  gasAnimation* animation = _gasAnimationNew(GAS_ANIMATION_TYPE_CUSTOM);
+  animation->customAnimation.callback = callback;
+  animation->customAnimation.resetCallback = resetCallback;
+  animation->customAnimation.userdata = userdata;
 }
 
 gasBoolean gasAnimate(gasAnimation* animation, glhckObject* object, float const delta)
@@ -208,6 +234,8 @@ float _gasAnimate(gasAnimation* animation, glhckObject* object, float const delt
       case GAS_ANIMATION_TYPE_SEQUENTIAL: left = _gasAnimateSequentialAnimation(animation, object, delta); break;
       case GAS_ANIMATION_TYPE_PARALLEL: left = _gasAnimateParallelAnimation(animation, object, delta); break;
       case GAS_ANIMATION_TYPE_MODEL: left = _gasAnimateModelAnimation(animation, object, delta); break;
+      case GAS_ANIMATION_TYPE_ACTION: left = _gasAnimateAction(animation, object, delta); break;
+      case GAS_ANIMATION_TYPE_CUSTOM: left = _gasAnimateCustomAnimation(animation, object, delta); break;
       default: assert(0);
     }
 
@@ -373,6 +401,32 @@ float _gasAnimateModelAnimation(gasAnimation* animation, glhckObject* object, fl
   }
 }
 
+float _gasAnimateAction(gasAnimation* animation, glhckObject* object, float const delta)
+{
+  if(animation->action.callback)
+  {
+    animation->action.callback(object, animation->action.userdata);
+  }
+
+  animation->state = GAS_ANIMATION_STATE_FINISHED;
+  return delta;
+}
+
+float _gasAnimateCustomAnimation(gasAnimation* animation, glhckObject* object, float const delta)
+{
+  float left = delta;
+  if(animation->customAnimation.callback)
+  {
+    left = animation->customAnimation.callback(object, delta, animation->customAnimation.userdata);
+  }
+
+  animation->state = left > 0
+      ? GAS_ANIMATION_STATE_FINISHED
+      : GAS_ANIMATION_STATE_RUNNING;
+
+  return left;
+}
+
 void _gasAnimationResetCurrentLoop(gasAnimation* animation)
 {
   animation->state = GAS_ANIMATION_STATE_NOT_STARTED;
@@ -384,6 +438,8 @@ void _gasAnimationResetCurrentLoop(gasAnimation* animation)
     case GAS_ANIMATION_TYPE_SEQUENTIAL: return _gasAnimationResetSequentialAnimation(animation); break;
     case GAS_ANIMATION_TYPE_PARALLEL: return _gasAnimationResetParallelAnimation(animation); break;
     case GAS_ANIMATION_TYPE_MODEL: return _gasAnimationResetModelAnimation(animation); break;
+    case GAS_ANIMATION_TYPE_ACTION: return _gasAnimationResetAction(animation); break;
+    case GAS_ANIMATION_TYPE_CUSTOM: return _gasAnimationResetCustomAnimation(animation); break;
     default: assert(0);
   }
 }
@@ -416,6 +472,22 @@ void _gasAnimationResetParallelAnimation(gasAnimation* animation)
   {
     gasAnimation* child = animation->parallelAnimation.children[i];
     gasAnimationReset(child);
+  }
+}
+
+void _gasAnimationResetAction(gasAnimation* animation)
+{
+  if(animation->action.resetCallback)
+  {
+    animation->action.resetCallback(animation->action.userdata);
+  }
+}
+
+void _gasAnimationResetCustomAnimation(gasAnimation* animation)
+{
+  if(animation->customAnimation.resetCallback)
+  {
+    animation->customAnimation.resetCallback(animation->customAnimation.userdata);
   }
 }
 

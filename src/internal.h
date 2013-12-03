@@ -8,7 +8,9 @@ typedef enum _gasAnimationType {
   GAS_ANIMATION_TYPE_PAUSE,
   GAS_ANIMATION_TYPE_SEQUENTIAL,
   GAS_ANIMATION_TYPE_PARALLEL,
-  GAS_ANIMATION_TYPE_MODEL
+  GAS_ANIMATION_TYPE_MODEL,
+  GAS_ANIMATION_TYPE_ACTION,
+  GAS_ANIMATION_TYPE_CUSTOM
 } _gasAnimationType;
 
 typedef enum _gasNumberAnimationType {
@@ -53,6 +55,18 @@ typedef struct _gasModelAnimation {
   float animationDuration;
 } _gasModelAnimation;
 
+typedef struct _gasAction {
+  gasActionCallback callback;
+  gasActionResetCallback resetCallback;
+  void* userdata;
+} _gasAction;
+
+typedef struct _gasCustomAnimation {
+  gasCustomAnimationCallback callback;
+  gasCustomAnimationResetCallback resetCallback;
+  void* userdata;
+} _gasCustomAnimation;
+
 typedef struct _gasAnimation {
   _gasAnimationType type;
   gasAnimationState state;
@@ -65,6 +79,8 @@ typedef struct _gasAnimation {
     _gasSequentialAnimation sequentialAnimation;
     _gasParallelAnimation parallelAnimation;
     _gasModelAnimation modelAnimation;
+    _gasAction action;
+    _gasCustomAnimation customAnimation;
   };
 } _gasAnimation;
 
@@ -77,6 +93,8 @@ float _gasAnimatePauseAnimation(gasAnimation* animation, glhckObject* object, fl
 float _gasAnimateSequentialAnimation(gasAnimation* animation, glhckObject* object, float const delta);
 float _gasAnimateParallelAnimation(gasAnimation* animation, glhckObject* object, float const delta);
 float _gasAnimateModelAnimation(gasAnimation* animation, glhckObject* object, float const delta);
+float _gasAnimateAction(gasAnimation* animation, glhckObject* object, float const delta);
+float _gasAnimateCustomAnimation(gasAnimation* animation, glhckObject* object, float const delta);
 
 void _gasAnimationResetCurrentLoop(gasAnimation* animation);
 void _gasAnimationResetNumberAnimation(gasAnimation* animation);
@@ -84,6 +102,8 @@ void _gasAnimationResetPauseAnimation(gasAnimation* animation);
 void _gasAnimationResetSequentialAnimation(gasAnimation* animation);
 void _gasAnimationResetParallelAnimation(gasAnimation* animation);
 void _gasAnimationResetModelAnimation(gasAnimation* animation);
+void _gasAnimationResetAction(gasAnimation* animation);
+void _gasAnimationResetCustomAnimation(gasAnimation* animation);
 
 float _gasNumberAnimationGetTargetValue(gasNumberAnimationTarget target, glhckObject* object);
 void _gasNumberAnimationSetTargetValue(gasNumberAnimationTarget target, glhckObject* object, float const value);
