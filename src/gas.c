@@ -78,11 +78,19 @@ void gasAnimationFree(gasAnimation* animation)
     }
     case GAS_ANIMATION_TYPE_ACTION:
     {
+      if(animation->action.freeCallback)
+      {
+        animation->action.freeCallback(animation->action.userdata);
+      }
       free(animation);
       break;
     }
     case GAS_ANIMATION_TYPE_CUSTOM:
     {
+      if(animation->customAnimation.freeCallback)
+      {
+        animation->customAnimation.freeCallback(animation->customAnimation.userdata);
+      }
       free(animation);
       break;
     }
@@ -152,19 +160,26 @@ gasAnimation* gasModelAnimationNew(glhckObject* model, const char* name, float d
   return animation;
 }
 
-gasAnimation* gasActionNew(gasActionCallback callback, gasActionResetCallback resetCallback, void* userdata)
+gasAnimation* gasActionNew(gasActionCallback callback, gasActionResetCallback resetCallback,
+                           gasActionCloneCallback cloneCallback, gasActionFreeCallback freeCallback, void* userdata)
 {
   gasAnimation* animation = _gasAnimationNew(GAS_ANIMATION_TYPE_ACTION);
   animation->action.callback = callback;
   animation->action.resetCallback = resetCallback;
+  animation->action.cloneCallback = cloneCallback;
+  animation->action.freeCallback = freeCallback;
   animation->action.userdata = userdata;
 }
 
-gasAnimation* gasCustomAnimationNew(gasCustomAnimationCallback callback, gasCustomAnimationResetCallback resetCallback, void* userdata)
+gasAnimation* gasCustomAnimationNew(gasCustomAnimationCallback callback, gasCustomAnimationResetCallback resetCallback,
+                                    gasCustomAnimationCloneCallback cloneCallback, gasCustomAnimationFreeCallback freeCallback,
+                                    void* userdata)
 {
   gasAnimation* animation = _gasAnimationNew(GAS_ANIMATION_TYPE_CUSTOM);
   animation->customAnimation.callback = callback;
   animation->customAnimation.resetCallback = resetCallback;
+  animation->customAnimation.cloneCallback = cloneCallback;
+  animation->customAnimation.freeCallback = freeCallback;
   animation->customAnimation.userdata = userdata;
 }
 
@@ -568,5 +583,32 @@ gasAnimation* gasAnimationClone(gasAnimation* animation)
 {
   gasAnimation* newAnimation = _gasAnimationNew(animation->type);
   *newAnimation = *animation;
+
+  switch (animation->type)
+  {
+    case GAS_ANIMATION_TYPE_NUMBER: break;
+    case GAS_ANIMATION_TYPE_PAUSE: break;
+    case GAS_ANIMATION_TYPE_SEQUENTIAL: break;
+    case GAS_ANIMATION_TYPE_PARALLEL: break;
+    case GAS_ANIMATION_TYPE_MODEL: break;
+    case GAS_ANIMATION_TYPE_ACTION:
+    {
+      if(animation->action.cloneCallback)
+      {
+        newAnimation->action.userdata = animation->action.cloneCallback(animation->action.userdata);
+      }
+      break;
+    }
+    case GAS_ANIMATION_TYPE_CUSTOM: break;
+    {
+      if(animation->customAnimation.cloneCallback)
+      {
+        newAnimation->customAnimation.userdata = animation->customAnimation.cloneCallback(animation->customAnimation.userdata);
+      }
+      break;
+    }
+    default: assert(0);
+  }
+
   return newAnimation;
 }

@@ -38,10 +38,14 @@ typedef enum gasEasingType {
 /* Callbacks */
 typedef void (*gasActionCallback)(glhckObject* object, void* userdata);
 typedef void (*gasActionResetCallback)(void* userdata);
+typedef void* (*gasActionCloneCallback)(void* userdata);
+typedef void (*gasActionFreeCallback)(void* userdata);
 
 /* Returns seconds left over from delta, return value > 0 means the animation is finished */
 typedef float (*gasCustomAnimationCallback)(glhckObject* object, float delta, void* userdata);
 typedef void (*gasCustomAnimationResetCallback)(void* userdata);
+typedef void* (*gasCustomAnimationCloneCallback)(void* userdata);
+typedef void (*gasCustomAnimationFreeCallback)(void* userdata);
 
 
 /* Types */
@@ -66,8 +70,11 @@ gasAnimation* gasPauseAnimationNew(float const duration);
 gasAnimation* gasSequentialAnimationNew(gasAnimation** children, unsigned int const numChildren);
 gasAnimation* gasParallelAnimationNew(gasAnimation** children, unsigned int const numChildren);
 gasAnimation* gasModelAnimationNew(glhckObject* model, char const* name, float duration);
-gasAnimation* gasActionNew(gasActionCallback callback, gasActionResetCallback resetCallback, void* userdata);
-gasAnimation* gasCustomAnimationNew(gasCustomAnimationCallback callback, gasCustomAnimationResetCallback resetCallback, void* userdata);
+gasAnimation* gasActionNew(gasActionCallback callback, gasActionResetCallback resetCallback,
+                           gasActionCloneCallback cloneCallback, gasActionFreeCallback freeCallback, void* userdata);
+gasAnimation* gasCustomAnimationNew(gasCustomAnimationCallback callback, gasCustomAnimationResetCallback resetCallback,
+                                    gasCustomAnimationCloneCallback cloneCallback, gasCustomAnimationFreeCallback freeCallback,
+                                    void* userdata);
 gasAnimation* gasAnimationClone(gasAnimation* animation);
 
 void gasAnimationFree(gasAnimation* animation);

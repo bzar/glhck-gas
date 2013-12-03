@@ -58,12 +58,16 @@ typedef struct _gasModelAnimation {
 typedef struct _gasAction {
   gasActionCallback callback;
   gasActionResetCallback resetCallback;
+  gasActionCloneCallback cloneCallback;
+  gasActionFreeCallback freeCallback;
   void* userdata;
 } _gasAction;
 
 typedef struct _gasCustomAnimation {
   gasCustomAnimationCallback callback;
   gasCustomAnimationResetCallback resetCallback;
+  gasCustomAnimationCloneCallback cloneCallback;
+  gasCustomAnimationFreeCallback freeCallback;
   void* userdata;
 } _gasCustomAnimation;
 

@@ -94,8 +94,8 @@ int main(int argc, char** argv)
 
   unsigned char opacityTarget = 0;
   gasAnimation* animations[] = {
-    gasCustomAnimationNew(changeOpacity, NULL, &opacityTarget),
-    gasActionNew(changeOpacityTarget, NULL, &opacityTarget)
+    gasCustomAnimationNew(changeOpacity, NULL, NULL, NULL, &opacityTarget),
+    gasActionNew(changeOpacityTarget, NULL, NULL, NULL, &opacityTarget)
   };
   gasAnimation* animation1 = gasSequentialAnimationNew(animations, 2);
   gasAnimationLoopTimes(animation1, 5);
