@@ -295,7 +295,9 @@ float _gasAnimateNumberAnimation(gasAnimation* animation, glhckObject* object, f
 
   animation->numberAnimation.time += delta;
 
-  float const relativeTime = animation->numberAnimation.time / animation->numberAnimation.duration;
+  float const relativeTime = animation->numberAnimation.duration > 0.0f
+      ? animation->numberAnimation.time / animation->numberAnimation.duration
+      : 1.0f;
 
   animation->state = animation->numberAnimation.time >= animation->numberAnimation.duration
       ? GAS_ANIMATION_STATE_FINISHED
