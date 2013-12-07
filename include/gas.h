@@ -69,7 +69,7 @@ gasAnimation* gasNumberAnimationNewDelta(gasNumberAnimationTarget const target, 
 gasAnimation* gasPauseAnimationNew(float const duration);
 gasAnimation* gasSequentialAnimationNew(gasAnimation** children, unsigned int const numChildren);
 gasAnimation* gasParallelAnimationNew(gasAnimation** children, unsigned int const numChildren);
-gasAnimation* gasModelAnimationNew(glhckObject* model, char const* name, float duration);
+gasAnimation* gasModelAnimationNew(char const* name, float duration);
 gasAnimation* gasActionNew(gasActionCallback callback, gasActionResetCallback resetCallback,
                            gasActionCloneCallback cloneCallback, gasActionFreeCallback freeCallback, void* userdata);
 gasAnimation* gasCustomAnimationNew(gasCustomAnimationCallback callback, gasCustomAnimationResetCallback resetCallback,

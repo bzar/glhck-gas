@@ -73,6 +73,7 @@ void gasAnimationFree(gasAnimation* animation)
     case GAS_ANIMATION_TYPE_MODEL:
     {
       glhckAnimatorFree(animation->modelAnimation.animator);
+      free(animation->modelAnimation.name);
       free(animation);
       break;
     }
@@ -128,33 +129,11 @@ gasAnimation* gasParallelAnimationNew(gasAnimation** children, const unsigned in
   return animation;
 }
 
-gasAnimation* gasModelAnimationNew(glhckObject* model, const char* name, float duration)
+gasAnimation* gasModelAnimationNew(const char* name, float duration)
 {
   gasAnimation* animation = _gasAnimationNew(GAS_ANIMATION_TYPE_MODEL);
-  glhckAnimator* animator = glhckAnimatorNew();
-
-  unsigned int numAnimations;
-  glhckAnimation** animations = glhckObjectAnimations(model, &numAnimations);
-  glhckAnimation* modelAnimation = NULL;
-  int i;
-  for(i = 0; i < numAnimations; ++i)
-  {
-    if(strcmp(name, glhckAnimationGetName(animations[i])) == 0)
-    {
-      modelAnimation = animations[i];
-      break;
-    }
-  }
-
-  assert(modelAnimation);
-  glhckAnimatorAnimation(animator, modelAnimation);
-  animation->modelAnimation.animationDuration = glhckAnimationGetDuration(modelAnimation);
-
-  unsigned int numBones;
-  glhckBone** bones = glhckObjectBones(model, &numBones);
-  glhckAnimatorInsertBones(animator, bones, numBones);
-
-  animation->modelAnimation.animator = animator;
+  animation->modelAnimation.name = strdup(name);
+  animation->modelAnimation.animator = NULL;
   animation->modelAnimation.duration = duration;
 
   return animation;
@@ -401,6 +380,35 @@ float _gasAnimateModelAnimation(gasAnimation* animation, glhckObject* object, fl
   if(animation->modelAnimation.duration <= 0.0f) {
     animation->state = GAS_ANIMATION_STATE_FINISHED;
     return delta;
+  }
+
+  if(animation->modelAnimation.animator == NULL)
+  {
+    glhckAnimator* animator = glhckAnimatorNew();
+
+    unsigned int numAnimations;
+    glhckAnimation** animations = glhckObjectAnimations(object, &numAnimations);
+    glhckAnimation* modelAnimation = NULL;
+    int i;
+    for(i = 0; i < numAnimations; ++i)
+    {
+      if(strcmp(animation->modelAnimation.name, glhckAnimationGetName(animations[i])) == 0)
+      {
+        modelAnimation = animations[i];
+        break;
+      }
+    }
+
+    assert(modelAnimation);
+    glhckAnimatorAnimation(animator, modelAnimation);
+    animation->modelAnimation.animationDuration = glhckAnimationGetDuration(modelAnimation);
+
+    unsigned int numBones;
+    glhckBone** bones = glhckObjectBones(object, &numBones);
+    glhckAnimatorInsertBones(animator, bones, numBones);
+
+    animation->modelAnimation.animator = animator;
+
   }
   animation->modelAnimation.time += delta;
   float position = animation->modelAnimation.time / animation->modelAnimation.duration;
