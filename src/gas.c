@@ -151,6 +151,7 @@ gasAnimation* gasActionNew(gasActionCallback callback, gasActionResetCallback re
   animation->action.cloneCallback = cloneCallback;
   animation->action.freeCallback = freeCallback;
   animation->action.userdata = userdata;
+  return animation;
 }
 
 gasAnimation* gasCustomAnimationNew(gasCustomAnimationCallback callback, gasCustomAnimationResetCallback resetCallback,
@@ -163,6 +164,7 @@ gasAnimation* gasCustomAnimationNew(gasCustomAnimationCallback callback, gasCust
   animation->customAnimation.cloneCallback = cloneCallback;
   animation->customAnimation.freeCallback = freeCallback;
   animation->customAnimation.userdata = userdata;
+  return animation;
 }
 
 gasBoolean gasAnimate(gasAnimation* animation, glhckObject* object, float const delta)
