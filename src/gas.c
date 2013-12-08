@@ -72,7 +72,10 @@ void gasAnimationFree(gasAnimation* animation)
     }
     case GAS_ANIMATION_TYPE_MODEL:
     {
-      glhckAnimatorFree(animation->modelAnimation.animator);
+      if (animation->modelAnimation.animator)
+      {
+        glhckAnimatorFree(animation->modelAnimation.animator);
+      }
       free(animation->modelAnimation.name);
       free(animation);
       break;
@@ -168,15 +171,17 @@ gasBoolean gasAnimate(gasAnimation* animation, glhckObject* object, float const 
   return animation->state != GAS_ANIMATION_STATE_FINISHED ? GAS_TRUE : GAS_FALSE;
 }
 
-void gasAnimationLoopTimes(gasAnimation* animation, unsigned int times)
+gasAnimation*  gasAnimationLoopTimes(gasAnimation* animation, unsigned int times)
 {
   animation->loops = times;
+  return animation;
 }
 
 
-void gasAnimationLoop(gasAnimation* animation)
+gasAnimation* gasAnimationLoop(gasAnimation* animation)
 {
   animation->loops = -1;
+  return animation;
 }
 
 

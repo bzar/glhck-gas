@@ -83,8 +83,8 @@ gasBoolean gasAnimate(gasAnimation* animation, glhckObject* object, float const 
 
 gasAnimationState gasAnimationGetState(gasAnimation* animation);
 
-void gasAnimationLoopTimes(gasAnimation* animation, unsigned int times);
-void gasAnimationLoop(gasAnimation* animation);
+gasAnimation*  gasAnimationLoopTimes(gasAnimation* animation, unsigned int times);
+gasAnimation*  gasAnimationLoop(gasAnimation* animation);
 
 void gasAnimationReset(gasAnimation* animation);
 

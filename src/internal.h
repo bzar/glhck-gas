@@ -51,7 +51,7 @@ typedef struct _gasParallelAnimation {
 typedef struct _gasModelAnimation {
   float duration;
   float time;
-  char const* name;
+  char* name;
   glhckAnimator* animator;
   float animationDuration;
 } _gasModelAnimation;
