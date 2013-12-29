@@ -89,6 +89,27 @@ typedef struct _gasAnimation {
   };
 } _gasAnimation;
 
+typedef struct _gasManagerAnimation
+{
+  glhckObject* object;
+  gasAnimation* animation;
+  gasBoolean manageObject;
+  struct _gasManagerAnimation* next;
+} _gasManagerAnimation;
+
+typedef struct _gasManagerAnimationReference
+{
+  _gasManagerAnimation* animation;
+  struct _gasManagerAnimationReference* next;
+} _gasManagerAnimationReference;
+
+typedef struct _gasManager
+{
+  _gasManagerAnimation* animations;
+  _gasManagerAnimation* newAnimations;
+  _gasManagerAnimationReference* removeAnimations;
+} _gasManager;
+
 gasAnimation* _gasAnimationNew(_gasAnimationType type);
 gasAnimation* _gasNumberAnimationNew(gasNumberAnimationTarget const target, gasEasingType const easing, _gasNumberAnimationType const type, float const a, float const b, float const duration);
 
@@ -116,4 +137,8 @@ void _gasNumberAnimationSetTargetValue(gasNumberAnimationTarget target, glhckObj
 float _gasClamp(float const value, float const minValue, float const maxValue);
 float _gasLoopsLeft(_gasAnimation* animation);
 
+_gasManagerAnimation* _gasManagerAnimationNew(gasAnimation* animation, glhckObject* object);
+_gasManagerAnimation* _gasManagerAnimationFree(_gasManagerAnimation* animation);
+_gasManagerAnimationReference* _gasManagerEnqueueRemoveAnimation(_gasManager* manager, _gasManagerAnimation* animation);
+_gasManagerAnimationReference* _gasManagerRemoveAnimationByReference(_gasManager* manager, _gasManagerAnimationReference* ref);
 #endif // GAS_INTERNAL_H

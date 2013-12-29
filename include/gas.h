@@ -50,6 +50,7 @@ typedef void (*gasCustomAnimationFreeCallback)(void* userdata);
 
 /* Types */
 typedef struct _gasAnimation gasAnimation;
+typedef struct _gasManager gasManager;
 
 
 /* Animation */
@@ -87,6 +88,16 @@ gasAnimation*  gasAnimationLoopTimes(gasAnimation* animation, unsigned int times
 gasAnimation*  gasAnimationLoop(gasAnimation* animation);
 
 void gasAnimationReset(gasAnimation* animation);
+
+/* Manager */
+gasManager* gasManagerNew();
+void gasManagerFree(gasManager* manager);
+
+void gasManagerAddAnimation(gasManager* manager, gasAnimation* animation, glhckObject* object);
+void gasManagerRemoveAnimation(gasManager* manager, gasAnimation* animation);
+void gasManagerRemoveObjectAnimations(gasManager* manager, glhckObject* object);
+void gasManagerAnimate(gasManager* manager, float const delta);
+
 
 #ifdef __cplusplus
 }

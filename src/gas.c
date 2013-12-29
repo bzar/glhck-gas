@@ -193,7 +193,112 @@ void gasAnimationReset(gasAnimation* animation)
   _gasAnimationResetCurrentLoop(animation);
 }
 
+gasManager* gasManagerNew()
+{
+  gasManager* manager = calloc(1, sizeof(_gasManager));
+  manager->animations = NULL;
+  manager->newAnimations = NULL;
+  manager->removeAnimations = NULL;
+  return manager;
+}
+
+
+void gasManagerFree(gasManager* manager)
+{
+  while (manager->animations)
+  {
+    manager->animations = _gasManagerAnimationFree(manager->animations);
+  }
+
+  while (manager->newAnimations)
+  {
+    manager->newAnimations = _gasManagerAnimationFree(manager->newAnimations);
+  }
+
+  while (manager->removeAnimations)
+  {
+    _gasManagerAnimationReference* ref = manager->removeAnimations;
+    manager->removeAnimations = ref->next;
+    free(ref);
+  }
+
+  free(manager);
+}
+
+
+void gasManagerAddAnimation(gasManager* manager, gasAnimation* animation, glhckObject* object)
+{
+  _gasManagerAnimation* a = _gasManagerAnimationNew(animation, object);
+  a->next = manager->newAnimations;
+  manager->newAnimations = a;
+}
+
+
+void gasManagerRemoveAnimation(gasManager* manager, gasAnimation* animation)
+{
+  _gasManagerAnimation** a = &manager->animations;
+  while (*a && (*a)->animation != animation)
+  {
+    a = &(*a)->next;
+  }
+
+  if (*a)
+  {
+    _gasManagerEnqueueRemoveAnimation(manager, *a);
+  }
+}
+
+
+void gasManagerRemoveObjectAnimations(gasManager* manager, glhckObject* object)
+{
+  _gasManagerAnimation** a = &manager->animations;
+  while (*a)
+  {
+    if ((*a)->object == object)
+    {
+      _gasManagerEnqueueRemoveAnimation(manager, *a);
+    }
+
+    a = &(*a)->next;
+  }
+}
+
+
+void gasManagerAnimate(gasManager* manager, const float delta)
+{
+  while (manager->removeAnimations)
+  {
+    _gasManagerAnimationReference* ref = manager->removeAnimations;
+    manager->removeAnimations = ref->next;
+    _gasManagerRemoveAnimationByReference(manager, ref);
+    free(ref);
+  }
+
+  while (manager->newAnimations)
+  {
+    _gasManagerAnimation* a = manager->newAnimations;
+    manager->newAnimations = a->next;
+    a->next = manager->animations;
+    manager->animations = a;
+  }
+
+  _gasManagerAnimation** a = &manager->animations;
+  while (*a)
+  {
+    if (gasAnimate((*a)->animation, (*a)->object, delta))
+    {
+      a = &(*a)->next;
+    }
+    else
+    {
+      *a = _gasManagerAnimationFree(*a);
+    }
+  }
+}
+
+
 // INTERNAL
+
 
 gasAnimation* _gasAnimationNew(_gasAnimationType type)
 {
@@ -628,4 +733,44 @@ gasAnimation* gasAnimationClone(gasAnimation* animation)
   }
 
   return newAnimation;
+}
+
+_gasManagerAnimation* _gasManagerAnimationNew(gasAnimation* animation, glhckObject* object)
+{
+  _gasManagerAnimation* a = calloc(1, sizeof(_gasManagerAnimation));
+  a->animation = animation;
+  a->object = object;
+  a->manageObject = GAS_FALSE;
+  a->next = NULL;
+  return a;
+}
+
+_gasManagerAnimation* _gasManagerAnimationFree(_gasManagerAnimation* animation)
+{
+  _gasManagerAnimation* next = animation->next;
+  gasAnimationFree(animation->animation);
+  free(animation);
+  return next;
+}
+
+_gasManagerAnimationReference* _gasManagerEnqueueRemoveAnimation(_gasManager* manager, _gasManagerAnimation* animation)
+{
+  _gasManagerAnimationReference* ref = calloc(1, sizeof(_gasManagerAnimationReference));
+  ref->animation = animation;
+  ref->next = manager->removeAnimations;
+  manager->removeAnimations = ref;
+}
+
+_gasManagerAnimationReference* _gasManagerRemoveAnimationByReference(_gasManager* manager, _gasManagerAnimationReference* ref)
+{
+  _gasManagerAnimation** a = &manager->animations;
+  while (*a && *a != ref->animation)
+  {
+    a = &(*a)->next;
+  }
+
+  if (*a)
+  {
+    *a = _gasManagerAnimationFree(*a);
+  }
 }
