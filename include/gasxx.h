@@ -8,37 +8,37 @@
 
 namespace gas
 {
-  gasAnimation* numberAnimationNewFromTo(gasNumberAnimationTarget const target, gasEasingType const easing,
+  gasAnimation* numberAnimationNewFromTo(gasNumberAnimationTarget const target, gasEasingFunc const easing,
                                             float const from, float const to, float const duration)
   {
     return gasNumberAnimationNewFromTo(target, easing, from, to, duration);
   }
 
-  gasAnimation* numberAnimationNewFromDelta(gasNumberAnimationTarget const target, gasEasingType const easing,
+  gasAnimation* numberAnimationNewFromDelta(gasNumberAnimationTarget const target, gasEasingFunc const easing,
                                                float const from, float const delta, float const duration)
   {
     return gasNumberAnimationNewFromDelta(target, easing, from, delta, duration);
   }
 
-  gasAnimation* numberAnimationNewDeltaTo(gasNumberAnimationTarget const target, gasEasingType const easing,
+  gasAnimation* numberAnimationNewDeltaTo(gasNumberAnimationTarget const target, gasEasingFunc const easing,
                                              float const delta, float const to, float const duration)
   {
     return gasNumberAnimationNewDeltaTo(target, easing, delta, to, duration);
   }
 
-  gasAnimation* numberAnimationNewFrom(gasNumberAnimationTarget const target, gasEasingType const easing,
+  gasAnimation* numberAnimationNewFrom(gasNumberAnimationTarget const target, gasEasingFunc const easing,
                                           float const from, float const duration)
   {
     return gasNumberAnimationNewFrom(target, easing, from, duration);
   }
 
-  gasAnimation* numberAnimationNewTo(gasNumberAnimationTarget const target, gasEasingType const easing,
+  gasAnimation* numberAnimationNewTo(gasNumberAnimationTarget const target, gasEasingFunc const easing,
                                         float const to, float const duration)
   {
     return gasNumberAnimationNewTo(target, easing, to, duration);
   }
 
-  gasAnimation* numberAnimationNewDelta(gasNumberAnimationTarget const target, gasEasingType const easing,
+  gasAnimation* numberAnimationNewDelta(gasNumberAnimationTarget const target, gasEasingFunc const easing,
                                            float const delta, float const duration)
   {
     return gasNumberAnimationNewDelta(target, easing, delta, duration);
