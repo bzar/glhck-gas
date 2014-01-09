@@ -744,9 +744,34 @@ gasAnimation* gasAnimationClone(gasAnimation* animation)
   {
     case GAS_ANIMATION_TYPE_NUMBER: break;
     case GAS_ANIMATION_TYPE_PAUSE: break;
-    case GAS_ANIMATION_TYPE_SEQUENTIAL: break;
-    case GAS_ANIMATION_TYPE_PARALLEL: break;
-    case GAS_ANIMATION_TYPE_MODEL: break;
+    case GAS_ANIMATION_TYPE_SEQUENTIAL:
+    {
+      int n = newAnimation->sequentialAnimation.numChildren;
+      newAnimation->sequentialAnimation.children = calloc(n, sizeof(gasAnimation*));
+      int i;
+      for(i = 0; i < n; ++i)
+      {
+        newAnimation->sequentialAnimation.children[i] = gasAnimationClone(animation->sequentialAnimation.children[i]);
+      }
+      break;
+    }
+    case GAS_ANIMATION_TYPE_PARALLEL:
+    {
+      int n = newAnimation->parallelAnimation.numChildren;
+      newAnimation->parallelAnimation.children = calloc(n, sizeof(gasAnimation*));
+      int i;
+      for(i = 0; i < n; ++i)
+      {
+        newAnimation->parallelAnimation.children[i] = gasAnimationClone(animation->parallelAnimation.children[i]);
+      }
+      break;
+    }
+    case GAS_ANIMATION_TYPE_MODEL:
+    {
+      newAnimation->modelAnimation.name = strdup(animation->modelAnimation.name);
+      newAnimation->modelAnimation.animator = NULL;
+      break;
+    }
     case GAS_ANIMATION_TYPE_ACTION:
     {
       if(animation->action.cloneCallback)

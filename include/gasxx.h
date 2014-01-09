@@ -4,118 +4,196 @@
 #include "gas.h"
 #include <vector>
 #include <string>
-#include <functional>
 
 namespace gas
 {
-  gasAnimation* numberAnimationNewFromTo(gasNumberAnimationTarget const target, gasEasingFunc const easing,
-                                            float const from, float const to, float const duration)
+  class Animation
   {
-    return gasNumberAnimationNewFromTo(target, easing, from, to, duration);
-  }
+  public:
+    static Animation fromTo(gasNumberAnimationTarget const target, gasEasingFunc const easing,
+                                  float const from, float const to, float const duration)
+    {
+      return Animation(gasNumberAnimationNewFromTo(target, easing, from, to, duration));
+    }
 
-  gasAnimation* numberAnimationNewFromDelta(gasNumberAnimationTarget const target, gasEasingFunc const easing,
-                                               float const from, float const delta, float const duration)
-  {
-    return gasNumberAnimationNewFromDelta(target, easing, from, delta, duration);
-  }
+    static Animation fromDelta(gasNumberAnimationTarget const target, gasEasingFunc const easing,
+                                     float const from, float const delta, float const duration)
+    {
+      return Animation(gasNumberAnimationNewFromDelta(target, easing, from, delta, duration));
+    }
 
-  gasAnimation* numberAnimationNewDeltaTo(gasNumberAnimationTarget const target, gasEasingFunc const easing,
-                                             float const delta, float const to, float const duration)
-  {
-    return gasNumberAnimationNewDeltaTo(target, easing, delta, to, duration);
-  }
+    static Animation deltaTo(gasNumberAnimationTarget const target, gasEasingFunc const easing,
+                                   float const delta, float const to, float const duration)
+    {
+      return Animation(gasNumberAnimationNewDeltaTo(target, easing, delta, to, duration));
+    }
 
-  gasAnimation* numberAnimationNewFrom(gasNumberAnimationTarget const target, gasEasingFunc const easing,
-                                          float const from, float const duration)
-  {
-    return gasNumberAnimationNewFrom(target, easing, from, duration);
-  }
+    static Animation from(gasNumberAnimationTarget const target, gasEasingFunc const easing,
+                                float const from, float const duration)
+    {
+      return Animation(gasNumberAnimationNewFrom(target, easing, from, duration));
+    }
 
-  gasAnimation* numberAnimationNewTo(gasNumberAnimationTarget const target, gasEasingFunc const easing,
-                                        float const to, float const duration)
-  {
-    return gasNumberAnimationNewTo(target, easing, to, duration);
-  }
+    static Animation to(gasNumberAnimationTarget const target, gasEasingFunc const easing,
+                                float const to, float const duration)
+    {
+      return Animation(gasNumberAnimationNewTo(target, easing, to, duration));
+    }
 
-  gasAnimation* numberAnimationNewDelta(gasNumberAnimationTarget const target, gasEasingFunc const easing,
-                                           float const delta, float const duration)
-  {
-    return gasNumberAnimationNewDelta(target, easing, delta, duration);
-  }
+    static Animation delta(gasNumberAnimationTarget const target, gasEasingFunc const easing,
+                                float const delta, float const duration)
+    {
+      return Animation(gasNumberAnimationNewDelta(target, easing, delta, duration));
+    }
 
-  gasAnimation* pauseAnimationNew(float const duration)
-  {
-    return gasPauseAnimationNew(duration);
-  }
+    static Animation pause(float const duration)
+    {
+      return Animation(gasPauseAnimationNew(duration));
+    }
 
-  gasAnimation* sequentialAnimationNew(std::vector<gasAnimation*>&& children)
-  {
-    return gasSequentialAnimationNew(children.data(), children.size());
-  }
+    static Animation sequential(std::vector<Animation>&& children)
+    {
+      std::vector<gasAnimation*> animations;
+      for(Animation& child : children)
+      {
+        animations.push_back(child.animation);
+        child.animation = nullptr;
+      }
+      return Animation(gasSequentialAnimationNew(animations.data(), animations.size()));
+    }
+    static Animation parallel(std::vector<Animation>&& children)
+    {
+      std::vector<gasAnimation*> animations;
+      for(Animation& child : children)
+      {
+        animations.push_back(child.animation);
+        child.animation = nullptr;
+      }
+      return Animation(gasParallelAnimationNew(animations.data(), animations.size()));
+    }
+    static Animation model(std::string const& name, float duration)
+    {
+      return Animation(gasModelAnimationNew(name.data(), duration));
+    }
+    static Animation action(gasActionCallback callback, void* userdata = nullptr, gasActionResetCallback resetCallback = nullptr,
+                            gasActionCloneCallback cloneCallback = nullptr, gasActionFreeCallback freeCallback = nullptr)
+    {
+      return Animation(gasActionNew(callback, resetCallback, cloneCallback, freeCallback, userdata));
+    }
+    static Animation custom(gasCustomAnimationCallback callback, void* userdata = nullptr, gasCustomAnimationResetCallback resetCallback = nullptr,
+                            gasCustomAnimationCloneCallback cloneCallback = nullptr, gasCustomAnimationFreeCallback freeCallback = nullptr)
+    {
+      return Animation(gasCustomAnimationNew(callback, resetCallback, cloneCallback, freeCallback, userdata));
+    }
 
-  gasAnimation* parallelAnimationNew(std::vector<gasAnimation*>&& children)
-  {
-    return gasParallelAnimationNew(children.data(), children.size());
-  }
+    static const Animation NONE;
 
-  gasAnimation* modelAnimationNew(std::string const& name, float duration)
-  {
-    return gasModelAnimationNew(name.data(), duration);
-  }
+    ~Animation()
+    {
+      freeAnimation();
+    }
 
-  gasAnimation* actionNew(gasActionCallback callback, gasActionResetCallback resetCallback,
-                             gasActionCloneCallback cloneCallback, gasActionFreeCallback freeCallback, void* userdata)
-  {
-    return gasActionNew(callback, resetCallback, cloneCallback, freeCallback, userdata);
-  }
+    Animation(Animation const& other) : animation(nullptr)
+    {
+      if(other.animation != nullptr)
+      {
+        animation = gasAnimationClone(other.animation);
+      }
+    }
 
-  gasAnimation* actionNew(gasActionCallback callback, void* userdata)
-  {
-    return gasActionNew(callback, nullptr, nullptr, nullptr, userdata);
-  }
+    Animation(Animation&& other) : animation(other.animation)
+    {
+      other.animation = nullptr;
+    }
 
-  gasAnimation* customAnimationNew(gasCustomAnimationCallback callback, gasCustomAnimationResetCallback resetCallback,
-                                      gasCustomAnimationCloneCallback cloneCallback, gasCustomAnimationFreeCallback freeCallback,
-                                      void* userdata)
-  {
-    return gasCustomAnimationNew(callback, resetCallback, cloneCallback, freeCallback, userdata);
-  }
+    Animation& operator=(Animation const& other)
+    {
+      if(&other != this)
+      {
+        freeAnimation();
+        if(other.animation != nullptr)
+        {
+          std::cout << "cloning animation " << ++n << std::endl;
+          animation = gasAnimationClone(other.animation);
+        }
+        else
+        {
+          animation = nullptr;
+        }
+        return *this;
+      }
+    }
 
-  gasAnimation* animationClone(gasAnimation* animation)
-  {
-    return gasAnimationClone(animation);
-  }
+    Animation& operator=(Animation&& other)
+    {
+      if(&other != this)
+      {
+        freeAnimation();
+        animation = other.animation;
+        other.animation = nullptr;
+        return *this;
+      }
+    }
 
-  void animationFree(gasAnimation* animation)
-  {
-    gasAnimationFree(animation);
-  }
+    operator bool()
+    {
+      return animation != nullptr;
+    }
 
-  bool animate(gasAnimation* animation, glhckObject* object, float const delta)
-  {
-    return gasAnimate(animation, object, delta);
-  }
+    bool animate(glhckObject* object, float const delta)
+    {
+      return animation == nullptr || gasAnimate(animation, object, delta);
+    }
 
-  gasAnimationState animationGetState(gasAnimation* animation)
-  {
-    return gasAnimationGetState(animation);
-  }
+    gasAnimationState getState()
+    {
+      return animation == nullptr ? GAS_ANIMATION_STATE_NOT_STARTED : gasAnimationGetState(animation);
+    }
 
-  gasAnimation*  animationLoop(gasAnimation* animation, unsigned int times)
-  {
-    return gasAnimationLoopTimes(animation, times);
-  }
+    Animation& loop(unsigned int times)
+    {
+      if(animation != nullptr)
+      {
+        gasAnimationLoopTimes(animation, times);
+      }
+      return *this;
+    }
 
-  gasAnimation*  animationLoop(gasAnimation* animation)
-  {
-    return gasAnimationLoop(animation);
-  }
+    Animation& loop()
+    {
+      if(animation != nullptr)
+      {
+        gasAnimationLoop(animation);
+      }
+      return *this;
+    }
 
-  void animationReset(gasAnimation* animation)
-  {
-    gasAnimationReset(animation);
-  }
+    void reset()
+    {
+      if(animation != nullptr)
+      {
+        gasAnimationReset(animation);
+      }
+    }
+
+  protected:
+    Animation(gasAnimation* animation) : animation(animation) {}
+    static int n;
+    void freeAnimation()
+    {
+      if(animation != nullptr)
+      {
+        gasAnimationFree(animation);
+        animation = nullptr;
+      }
+    }
+
+    gasAnimation* animation;
+  };
+
+   Animation const Animation::NONE = Animation(nullptr);
+   int Animation::n = 0;
 }
+
 
 #endif // GASXX_H
