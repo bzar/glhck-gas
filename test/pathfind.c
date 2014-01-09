@@ -264,16 +264,16 @@ LevelPosition* findPath(int fromX, int fromZ, int toX, int toZ, int* level, int 
 
 gasAnimation* moveStep(kmVec3 const* from, kmVec3 const* to)
 {
-  gasAnimation* x = gasNumberAnimationNewFromTo(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_LINEAR, from->x, to->x, 1.0f);
+  gasAnimation* x = gasNumberAnimationNewFromTo(GAS_NUMBER_ANIMATION_TARGET_X, gasEasingLinear, from->x, to->x, 1.0f);
   float peak = (from->y > to->y ? from->y : to->y) + 4.0f;
   float t = (from->y > to->y ? 0.3f : from->y < to->y ? 0.7f : 0.5f);
   gasAnimation* ys[2] = {
-    gasNumberAnimationNewFromTo(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_OUT, from->y, peak, t),
-    gasNumberAnimationNewFromTo(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_IN, peak, to->y, 1.0f - t)
+    gasNumberAnimationNewFromTo(GAS_NUMBER_ANIMATION_TARGET_Y, gasEasingQuadOut, from->y, peak, t),
+    gasNumberAnimationNewFromTo(GAS_NUMBER_ANIMATION_TARGET_Y, gasEasingQuadIn, peak, to->y, 1.0f - t)
   };
   gasAnimation* y = gasSequentialAnimationNew(ys, 2);
 
-  gasAnimation* z = gasNumberAnimationNewFromTo(GAS_NUMBER_ANIMATION_TARGET_Z, GAS_EASING_LINEAR, from->z, to->z, 1.0f);
+  gasAnimation* z = gasNumberAnimationNewFromTo(GAS_NUMBER_ANIMATION_TARGET_Z, gasEasingLinear, from->z, to->z, 1.0f);
   gasAnimation* animations[] = {x, y, z};
   return gasParallelAnimationNew(animations, 3);
 }

@@ -28,13 +28,6 @@ typedef enum gasNumberAnimationTarget {
   GAS_NUMBER_ANIMATION_TARGET_ROT_Z
 } gasNumberAnimationTarget;
 
-typedef enum gasEasingType {
-  GAS_EASING_LINEAR,
-  GAS_EASING_QUAD_IN,
-  GAS_EASING_QUAD_OUT
-} gasEasingType;
-
-
 /* Callbacks */
 typedef void (*gasActionCallback)(glhckObject* object, void* userdata);
 typedef void (*gasActionResetCallback)(void* userdata);
@@ -47,6 +40,7 @@ typedef void (*gasCustomAnimationResetCallback)(void* userdata);
 typedef void* (*gasCustomAnimationCloneCallback)(void* userdata);
 typedef void (*gasCustomAnimationFreeCallback)(void* userdata);
 
+typedef float (*gasEasingFunc)(float t);
 
 /* Types */
 typedef struct _gasAnimation gasAnimation;
@@ -54,17 +48,17 @@ typedef struct _gasManager gasManager;
 
 
 /* Animation */
-gasAnimation* gasNumberAnimationNewFromTo(gasNumberAnimationTarget const target, gasEasingType const easing,
+gasAnimation* gasNumberAnimationNewFromTo(gasNumberAnimationTarget const target, gasEasingFunc easing,
                                           float const from, float const to, float const duration);
-gasAnimation* gasNumberAnimationNewFromDelta(gasNumberAnimationTarget const target, gasEasingType const easing,
+gasAnimation* gasNumberAnimationNewFromDelta(gasNumberAnimationTarget const target, gasEasingFunc easing,
                                              float const from, float const delta, float const duration);
-gasAnimation* gasNumberAnimationNewDeltaTo(gasNumberAnimationTarget const target, gasEasingType const easing,
+gasAnimation* gasNumberAnimationNewDeltaTo(gasNumberAnimationTarget const target, gasEasingFunc easing,
                                            float const delta, float const to, float const duration);
-gasAnimation* gasNumberAnimationNewFrom(gasNumberAnimationTarget const target, gasEasingType const easing,
+gasAnimation* gasNumberAnimationNewFrom(gasNumberAnimationTarget const target, gasEasingFunc easing,
                                         float const from, float const duration);
-gasAnimation* gasNumberAnimationNewTo(gasNumberAnimationTarget const target, gasEasingType const easing,
+gasAnimation* gasNumberAnimationNewTo(gasNumberAnimationTarget const target, gasEasingFunc easing,
                                       float const to, float const duration);
-gasAnimation* gasNumberAnimationNewDelta(gasNumberAnimationTarget const target, gasEasingType const easing,
+gasAnimation* gasNumberAnimationNewDelta(gasNumberAnimationTarget const target, gasEasingFunc easing,
                                          float const delta, float const duration);
 
 gasAnimation* gasPauseAnimationNew(float const duration);
@@ -98,6 +92,18 @@ void gasManagerRemoveAnimation(gasManager* manager, gasAnimation* animation);
 void gasManagerRemoveObjectAnimations(gasManager* manager, glhckObject* object);
 void gasManagerAnimate(gasManager* manager, float const delta);
 
+/* Easing functions */
+
+float gasEasingLinear(float t);
+float gasEasingQuadIn(float t);
+float gasEasingQuadOut(float t);
+float gasEasingEase(float t);
+float gasEasingEaseIn(float t);
+float gasEasingEaseOut(float t);
+float gasEasingEaseInOut(float t);
+
+/* A general easing curve function to implement others with */
+float gasEasingCubicBezier(float x, float p1x, float p1y, float p2x, float p2y);
 
 #ifdef __cplusplus
 }

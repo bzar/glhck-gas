@@ -61,8 +61,8 @@ void shrapnelDie(glhckObject* object, void* userdata)
 gasAnimation* shrapnelAnimation(float dx, float dy, float duration)
 {
   gasAnimation* a1[] = {
-    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_QUAD_OUT, dx, duration),
-    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_OUT, dy, duration),
+    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, gasEasingQuadOut, dx, duration),
+    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_Y, gasEasingQuadOut, dy, duration),
   };
 
   gasAnimation* a2[] = {
@@ -109,8 +109,8 @@ void rocketBoom(glhckObject* object, void* userdata)
 gasAnimation* rocketAnimation(float x, float y, float dx, float dy, float duration)
 {
   gasAnimation* a1[] = {
-    gasNumberAnimationNewFromDelta(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_QUAD_IN, x, dx, duration),
-    gasNumberAnimationNewFromDelta(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_LINEAR, y, dy, duration),
+    gasNumberAnimationNewFromDelta(GAS_NUMBER_ANIMATION_TARGET_X, gasEasingQuadIn, x, dx, duration),
+    gasNumberAnimationNewFromDelta(GAS_NUMBER_ANIMATION_TARGET_Y, gasEasingLinear, y, dy, duration),
   };
 
   gasAnimation* a2[] = {

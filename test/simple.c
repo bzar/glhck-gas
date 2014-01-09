@@ -42,15 +42,15 @@ int main(int argc, char** argv)
 
   glhckObject* cube1 = glhckCubeNew(10);
   glhckObjectPositionf(cube1, 0, HEIGHT/2, 0);
-  gasAnimation* animation1 = gasNumberAnimationNewFromTo(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_LINEAR, 0.0f, 800.0f, 5.0f);
+  gasAnimation* animation1 = gasNumberAnimationNewFromTo(GAS_NUMBER_ANIMATION_TARGET_X, gasEasingLinear, 0.0f, 800.0f, 5.0f);
 
   glhckObject* cube2 = glhckCubeNew(10);
   glhckObjectPositionf(cube2, WIDTH/2, 0, 0);
-  gasAnimation* animation2 = gasNumberAnimationNewFromTo(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_OUT, 0.0f, 480.0f, 4.0f);
+  gasAnimation* animation2 = gasNumberAnimationNewFromTo(GAS_NUMBER_ANIMATION_TARGET_Y, gasEasingQuadOut, 0.0f, 480.0f, 4.0f);
 
   glhckObject* cube3 = glhckCubeNew(10);
   glhckObjectPositionf(cube3, WIDTH/4, HEIGHT/4, 0);
-  gasAnimation* animation3 = gasNumberAnimationNewFromTo(GAS_NUMBER_ANIMATION_TARGET_ROT_Z, GAS_EASING_QUAD_IN, 0.0f, 720.0f, 5.0f);
+  gasAnimation* animation3 = gasNumberAnimationNewFromTo(GAS_NUMBER_ANIMATION_TARGET_ROT_Z, gasEasingQuadIn, 0.0f, 720.0f, 5.0f);
 
   float time = glfwGetTime();
   while(time < 6)

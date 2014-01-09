@@ -42,26 +42,26 @@ int main(int argc, char** argv)
 
   glhckObject* cube1 = glhckCubeNew(10);
   glhckObjectPositionf(cube1, 0, HEIGHT/2, 0);
-  gasAnimation* animation1 = gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_QUAD_IN, 80.0f, 0.5f);
+  gasAnimation* animation1 = gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, gasEasingEase, 80.0f, 0.5f);
   gasAnimationLoop(animation1);
 
   glhckObject* cube2 = glhckCubeNew(10);
   glhckObjectPositionf(cube2, WIDTH/2 + 100, HEIGHT/2, 0);
   gasAnimation* topRight[] = {
-    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_QUAD_IN, -100.0f, 0.3f),
-    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_OUT, -100.0f, 0.3f)
+    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, gasEasingQuadIn, -100.0f, 0.3f),
+    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_Y, gasEasingQuadOut, -100.0f, 0.3f)
   };
   gasAnimation* topLeft[] = {
-    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_QUAD_OUT, -100.0f, 0.3f),
-    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_IN, 100.0f, 0.3f)
+    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, gasEasingQuadOut, -100.0f, 0.3f),
+    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_Y, gasEasingQuadIn, 100.0f, 0.3f)
   };
   gasAnimation* bottomLeft[] = {
-    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_QUAD_IN, 100.0f, 0.3f),
-    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_OUT, 100.0f, 0.3f)
+    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, gasEasingQuadIn, 100.0f, 0.3f),
+    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_Y, gasEasingQuadOut, 100.0f, 0.3f)
   };
   gasAnimation* bottomRight[] = {
-    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, GAS_EASING_QUAD_OUT, 100.0f, 0.3f),
-    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_Y, GAS_EASING_QUAD_IN, -100.0f, 0.3f)
+    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_X, gasEasingQuadOut, 100.0f, 0.3f),
+    gasNumberAnimationNewDelta(GAS_NUMBER_ANIMATION_TARGET_Y, gasEasingQuadIn, -100.0f, 0.3f)
   };
 
   gasAnimation* circleParts[] = {

@@ -6,37 +6,37 @@
 #include <memory.h>
 #include <string.h>
 
-gasAnimation* gasNumberAnimationNewFromTo(gasNumberAnimationTarget const target, gasEasingType const easing,
+gasAnimation* gasNumberAnimationNewFromTo(gasNumberAnimationTarget const target, gasEasingFunc easing,
                                           float const from, float const to, float const duration)
 {
   return _gasNumberAnimationNew(target, easing, GAS_NUMBER_ANIMATION_TYPE_FROM_TO, from, to, duration);
 }
 
-gasAnimation* gasNumberAnimationNewFromDelta(gasNumberAnimationTarget const target, gasEasingType const easing,
+gasAnimation* gasNumberAnimationNewFromDelta(gasNumberAnimationTarget const target, gasEasingFunc easing,
                                              float const from, float const delta, float const duration)
 {
   return _gasNumberAnimationNew(target, easing, GAS_NUMBER_ANIMATION_TYPE_FROM_DELTA, from, delta, duration);
 }
 
-gasAnimation* gasNumberAnimationNewDeltaTo(gasNumberAnimationTarget const target, gasEasingType const easing,
+gasAnimation* gasNumberAnimationNewDeltaTo(gasNumberAnimationTarget const target, gasEasingFunc easing,
                                            float const delta, float const to, float const duration)
 {
   return _gasNumberAnimationNew(target, easing, GAS_NUMBER_ANIMATION_TYPE_DELTA_TO, delta, to, duration);
 }
 
-gasAnimation* gasNumberAnimationNewFrom(gasNumberAnimationTarget const target, gasEasingType const easing,
+gasAnimation* gasNumberAnimationNewFrom(gasNumberAnimationTarget const target, gasEasingFunc easing,
                                         float const from, float const duration)
 {
   return _gasNumberAnimationNew(target, easing, GAS_NUMBER_ANIMATION_TYPE_FROM, from, 0.0f, duration);
 }
 
-gasAnimation* gasNumberAnimationNewTo(gasNumberAnimationTarget const target, gasEasingType const easing,
+gasAnimation* gasNumberAnimationNewTo(gasNumberAnimationTarget const target, gasEasingFunc easing,
                                       float const to, float const duration)
 {
   return _gasNumberAnimationNew(target, easing, GAS_NUMBER_ANIMATION_TYPE_TO, 0.0f, to, duration);
 }
 
-gasAnimation* gasNumberAnimationNewDelta(gasNumberAnimationTarget const target, gasEasingType const easing,
+gasAnimation* gasNumberAnimationNewDelta(gasNumberAnimationTarget const target, gasEasingFunc easing,
                                          float const delta, float const duration)
 {
   return _gasNumberAnimationNew(target, easing, GAS_NUMBER_ANIMATION_TYPE_DELTA, 0.0f, delta, duration);
@@ -297,6 +297,49 @@ void gasManagerAnimate(gasManager* manager, const float delta)
 }
 
 
+float gasEasingLinear(float t)
+{
+  return t;
+}
+
+float gasEasingQuadIn(float t)
+{
+  return t * t;
+}
+
+float gasEasingQuadOut(float t)
+{
+  return 2 * t - t * t;
+}
+
+float gasEasingEase(float t)
+{
+  return gasEasingCubicBezier(t, 0.25, 0.1, 0.25, 1);
+}
+
+float gasEasingEaseIn(float t)
+{
+  return gasEasingCubicBezier(t, 0.42, 0, 1, 1);
+}
+
+float gasEasingEaseOut(float t)
+{
+  return gasEasingCubicBezier(t, 0, 0, 0.58, 1);
+}
+
+float gasEasingEaseInOut(float t)
+{
+  return gasEasingCubicBezier(t, 0.42, 0, 0.58, 1);
+}
+
+float gasEasingCubicBezier(float x, float x1, float y1, float x2, float y2)
+{
+  if (x <= 0) return 0;
+  if (x >= 1) return 1;
+  float const t = _gasCubicBezierTFromX(x, x1, x2);
+  return _gasCubicBezierYFromT(t, y1, y2);
+}
+
 // INTERNAL
 
 
@@ -310,7 +353,7 @@ gasAnimation* _gasAnimationNew(_gasAnimationType type)
   return animation;
 }
 
-gasAnimation* _gasNumberAnimationNew(gasNumberAnimationTarget const target, gasEasingType const easing,
+gasAnimation* _gasNumberAnimationNew(gasNumberAnimationTarget const target, gasEasingFunc easing,
                                      _gasNumberAnimationType const type, float const a, float const b, float const duration)
 {
   gasAnimation* animation = _gasAnimationNew(GAS_ANIMATION_TYPE_NUMBER);
@@ -394,16 +437,7 @@ float _gasAnimateNumberAnimation(gasAnimation* animation, glhckObject* object, f
       ? GAS_ANIMATION_STATE_FINISHED
       : GAS_ANIMATION_STATE_RUNNING;
 
-  float progress;
-  float t = _gasClamp(relativeTime, 0, 1);
-
-  switch (animation->numberAnimation.easing)
-  {
-    case GAS_EASING_LINEAR: progress = t; break;
-    case GAS_EASING_QUAD_IN: progress = t * t; break;
-    case GAS_EASING_QUAD_OUT: progress = 2 * t - t * t; break;
-    default: assert(0);
-  }
+  float const t = animation->numberAnimation.easing(_gasClamp(relativeTime, 0, 1));
 
   float value;
   switch (animation->numberAnimation.type)
@@ -412,18 +446,18 @@ float _gasAnimateNumberAnimation(gasAnimation* animation, glhckObject* object, f
     case GAS_NUMBER_ANIMATION_TYPE_FROM:
     case GAS_NUMBER_ANIMATION_TYPE_TO:
     {
-      value = animation->numberAnimation.a + (animation->numberAnimation.b - animation->numberAnimation.a) * progress;
+      value = animation->numberAnimation.a + (animation->numberAnimation.b - animation->numberAnimation.a) * t;
       break;
     }
     case GAS_NUMBER_ANIMATION_TYPE_FROM_DELTA:
     case GAS_NUMBER_ANIMATION_TYPE_DELTA:
     {
-      value = animation->numberAnimation.a + animation->numberAnimation.b * progress;
+      value = animation->numberAnimation.a + animation->numberAnimation.b * t;
       break;
     }
     case GAS_NUMBER_ANIMATION_TYPE_DELTA_TO:
     {
-      value = (animation->numberAnimation.b - animation->numberAnimation.a) + animation->numberAnimation.a * progress;
+      value = (animation->numberAnimation.b - animation->numberAnimation.a) + animation->numberAnimation.a * t;
       break;
     }
     default: assert(0);
@@ -773,4 +807,28 @@ _gasManagerAnimationReference* _gasManagerRemoveAnimationByReference(_gasManager
   {
     *a = _gasManagerAnimationFree(*a);
   }
+}
+
+float _gasCubicBezierXFromT(float t, float x1, float x2) {
+  return 3 * (1-t) * (1-t) * t * x1 + 3 * (1-t) * t * t * x2 + t * t * t;
+}
+
+float _gasCubicBezierYFromT(float t, float y1, float y2) {
+  return 3 * (1-t) * (1-t) * t * y1 + 3 * (1-t) * t * t * y2 + t * t * t;
+}
+
+float _gasCubicBezierTFromX(float x, float x1, float x2) {
+  float mint = 0;
+  float maxt = 1;
+  int i;
+  for (i = 0; i < 30; ++i)
+  {
+    float guesst = (mint + maxt) / 2;
+    float guessx = _gasCubicBezierXFromT(guesst, x1, x2);
+    if (x < guessx)
+      maxt = guesst;
+    else
+      mint = guesst;
+  }
+  return (mint + maxt) / 2;
 }

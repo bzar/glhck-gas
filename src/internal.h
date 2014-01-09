@@ -28,7 +28,7 @@ typedef struct _gasNumberAnimation {
   float a;
   float b;
   float duration;
-  gasEasingType easing;
+  gasEasingFunc easing;
   float time;
 } _gasNumberAnimation;
 
@@ -111,7 +111,7 @@ typedef struct _gasManager
 } _gasManager;
 
 gasAnimation* _gasAnimationNew(_gasAnimationType type);
-gasAnimation* _gasNumberAnimationNew(gasNumberAnimationTarget const target, gasEasingType const easing, _gasNumberAnimationType const type, float const a, float const b, float const duration);
+gasAnimation* _gasNumberAnimationNew(gasNumberAnimationTarget const target, gasEasingFunc const easing, _gasNumberAnimationType const type, float const a, float const b, float const duration);
 
 float _gasAnimate(gasAnimation* animation, glhckObject* object, float const delta);
 float _gasAnimateNumberAnimation(gasAnimation* animation, glhckObject* object, float const delta);
@@ -141,4 +141,9 @@ _gasManagerAnimation* _gasManagerAnimationNew(gasAnimation* animation, glhckObje
 _gasManagerAnimation* _gasManagerAnimationFree(_gasManagerAnimation* animation);
 _gasManagerAnimationReference* _gasManagerEnqueueRemoveAnimation(_gasManager* manager, _gasManagerAnimation* animation);
 _gasManagerAnimationReference* _gasManagerRemoveAnimationByReference(_gasManager* manager, _gasManagerAnimationReference* ref);
+
+float _gasCubicBezierXFromT(float t, float x1, float x2);
+float _gasCubicBezierYFromT(float t, float y1, float y2);
+float _gasCubicBezierTFromX(float x, float x1, float x2);
+
 #endif // GAS_INTERNAL_H
