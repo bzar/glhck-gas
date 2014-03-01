@@ -77,40 +77,6 @@ glhckObject** createLevelObjects(int* level, int levelSize)
   return objects;
 }
 
-kmRay3* createPointerRay(kmRay3* pOut, float const x, float const y, float const width, float const height, glhckFrustum const* frustum)
-{
-  kmVec3 nu, nv, fu, fv;
-  kmVec3Subtract(&nu,
-                 &frustum->corners[GLHCK_FRUSTUM_CORNER_NEAR_BOTTOM_RIGHT],
-                 &frustum->corners[GLHCK_FRUSTUM_CORNER_NEAR_BOTTOM_LEFT]);
-  kmVec3Subtract(&nv,
-                 &frustum->corners[GLHCK_FRUSTUM_CORNER_NEAR_TOP_LEFT],
-                 &frustum->corners[GLHCK_FRUSTUM_CORNER_NEAR_BOTTOM_LEFT]);
-  kmVec3Subtract(&fu,
-                 &frustum->corners[GLHCK_FRUSTUM_CORNER_FAR_BOTTOM_RIGHT],
-                 &frustum->corners[GLHCK_FRUSTUM_CORNER_FAR_BOTTOM_LEFT]);
-  kmVec3Subtract(&fv,
-                 &frustum->corners[GLHCK_FRUSTUM_CORNER_FAR_TOP_LEFT],
-                 &frustum->corners[GLHCK_FRUSTUM_CORNER_FAR_BOTTOM_LEFT]);
-  kmVec2 relativeMousePos = { x/width, (height-y)/height };
-
-  kmVec3Scale(&nu, &nu, relativeMousePos.x);
-  kmVec3Scale(&nv, &nv, relativeMousePos.y);
-  kmVec3Scale(&fu, &fu, relativeMousePos.x);
-  kmVec3Scale(&fv, &fv, relativeMousePos.y);
-
-  pOut->start = frustum->corners[GLHCK_FRUSTUM_CORNER_NEAR_BOTTOM_LEFT];
-  pOut->dir = frustum->corners[GLHCK_FRUSTUM_CORNER_FAR_BOTTOM_LEFT];
-
-  kmVec3Add(&pOut->start, &pOut->start, &nu);
-  kmVec3Add(&pOut->start, &pOut->start, &nv);
-  kmVec3Add(&pOut->dir, &pOut->dir, &fu);
-  kmVec3Add(&pOut->dir, &pOut->dir, &fv);
-  kmVec3Subtract(&pOut->dir, &pOut->dir, &pOut->start);
-
-  return pOut;
-}
-
 typedef struct PathNode {
   int x;
   int z;
@@ -381,9 +347,8 @@ int main(int argc, char** argv)
     // INPUT
     glfwPollEvents();
 
-    glhckFrustum* frustum = glhckCameraGetFrustum(camera);
     kmRay3 pointerRay;
-    createPointerRay(&pointerRay, CURSOR_X, CURSOR_Y, WIDTH, HEIGHT, frustum);
+    glhckCameraCastRayFromPointf(camera, &pointerRay, CURSOR_X/WIDTH, (HEIGHT-CURSOR_Y)/HEIGHT);
 
     for(i = 0; i < LEVEL_SIZE * LEVEL_SIZE; ++i)
     {
